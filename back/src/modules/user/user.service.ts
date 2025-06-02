@@ -1,60 +1,40 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserInput } from './dto/create-user.input';
-import { UpdateUserInput } from './dto/update-user.input';
-import * as bcrypt from 'bcrypt';
+import { Auth0UserDto } from '../auth/dto/auth0-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createUserInput: CreateUserInput) {
+  async findOrCreateUser(auth0User: Auth0UserDto) {
     try {
-      const hashedPassword = await bcrypt.hash(createUserInput.password, 10);
-      return this.prisma.user.create({
-        data: {
-          ...createUserInput,
-          password: hashedPassword,
-        },
+      const { sub, email, username } = auth0User;
+
+      let user = await this.prisma.user.findUnique({
+        where: { auth0Id: sub },
       });
+
+      if (!user) {
+        user = await this.prisma.user.create({
+          data: {
+            auth0Id: sub,
+            email: email ?? '',
+            username: username ?? email?.split('@')[0] ?? `user_${Date.now()}`,
+          },
+        });
+      }
+
+      return user;
     } catch (error) {
-      throw new UnauthorizedException('User already exists');
+      if (error.code === 'P2025') {
+        throw new UnauthorizedException('User not found');
+      }
+      throw error;
     }
   }
-
-  async findByEmail(email: string) {
-    try {
-      return this.prisma.user.findUniqueOrThrow({ where: { email } });
-    } catch (error) {
-      throw new UnauthorizedException('User not found');
-    }
-  }
-
-  async findById(id: number) {
-    try {
-      return this.prisma.user.findUniqueOrThrow({ where: { id } });
-    } catch (error) {
-      throw new UnauthorizedException('User not found');
-    }
-  }
-
-  async update(updateUserInput: UpdateUserInput) {
-    const { id, ...data } = updateUserInput;
-    try {
-      return this.prisma.user.update({
-        where: { id },
-        data,
-      });
-    } catch (error) {
-      throw new UnauthorizedException('User not found');
-    }
-  }
-
-  async delete(id: number) {
-    try {
-      return this.prisma.user.delete({ where: { id } });
-    } catch (error) {
-      throw new UnauthorizedException('User not found');
-    }
+  async findById(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    return user;
   }
 }

@@ -6,8 +6,6 @@ import { join } from 'path';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { AppResolver } from './app.resolver';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from './modules/auth/roles/roles.guard';
 import { AppService } from './app.service';
 
 @Module({
@@ -23,10 +21,6 @@ import { AppService } from './app.service';
     UserModule,
   ],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
     AppResolver,
     AppService,
   ],

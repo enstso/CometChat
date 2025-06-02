@@ -1,33 +1,15 @@
-import {
-  Resolver,
-  Query,
-  Mutation,
-  Args,
-  Int,
-  Resolver,
-  Query,
-} from '@nestjs/graphql';
-import { UserService } from './user.service';
+import { Resolver, Query } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
+import { GqlAuthGuard } from '../auth/gql-auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { User } from './user.model';
-import { UpdateUserInput } from './dto/update-user.input';
 
 @Resolver(() => User)
 export class UserResolver {
-  constructor(private readonly userService: UserService) {}
+  // Cette route est sécurisée, accessible uniquement avec un token JWT valide
   @Query(() => User)
-  async user(@Args('id', { type: () => Int }) id: number): Promise<any> {
-    return this.userService.findById(id);
-  }
-
-  @Mutation(() => User)
-  async updateUser(
-    @Args('updateUserInput') updateUserInput: UpdateUserInput,
-  ): Promise<any> {
-    return this.userService.update(updateUserInput);
-  }
-
-  @Mutation(() => User)
-  async deleteUser(@Args('id', { type: () => Int }) id: number): Promise<any> {
-    return this.userService.delete(id);
+  @UseGuards(GqlAuthGuard)
+  me(@CurrentUser() user: User) {
+    return user;
   }
 }
