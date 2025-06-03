@@ -11,10 +11,9 @@ export class HealthController {
   @Get()
   async check() {
     await this.queue.add('log', {
-      message: 'Health check triggered!',
-      timestamp: new Date().toISOString(),
+      result: 'OK',
     });
-
+    console.log('Health check triggered!');
     return { result: 'OK' };
   }
 }

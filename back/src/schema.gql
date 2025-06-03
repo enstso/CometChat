@@ -2,7 +2,12 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type HealthCheckResponse {
+  result: String!
+}
+
 type Query {
+  healthCheck: HealthCheckResponse!
   hello: String!
   me: User!
 }
