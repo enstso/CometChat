@@ -6,6 +6,8 @@ import { AppService } from './app.service';
 import { GqlModule } from './modules/graphql/graphql.module';
 import { HealthModule } from './modules/health/health.module';
 import { BullMqModule } from './modules/bullmq/bullmq.module';
+import { ConversationModule } from './modules/conversation/conversation.module';
+import { MessageModule } from './modules/message/message.module';
 
 @Module({
   imports: [
@@ -13,7 +15,9 @@ import { BullMqModule } from './modules/bullmq/bullmq.module';
     GqlModule,
     AuthModule,
     UserModule,
-    HealthModule
+    HealthModule,
+    ConversationModule,
+    MessageModule
   ],
   providers: [
     AppResolver,

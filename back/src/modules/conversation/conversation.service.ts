@@ -9,7 +9,7 @@ export class ConversationService {
   constructor(private readonly prisma: PrismaService) {}
   async create(input: CreateConversationInput) {
     return this.prisma.conversation.create({
-      dzta: {
+      data: {
         participants: {
           create: [
             { user: { connect: { id: input.userId1 } } },
@@ -20,7 +20,6 @@ export class ConversationService {
       include: { participants: { include: { user: true } } },
     });
   }
-
   async paginateUserConversations(
     userId: string,
     args: ConversationPaginationArgs,
@@ -44,6 +43,9 @@ export class ConversationService {
             messages: {
               orderBy: { createdAt: 'desc' },
               take: 1,
+              include: {
+                sender: true, // ✅ important pour correspondre au model Message GraphQL
+              },
             },
           },
         },
@@ -55,7 +57,7 @@ export class ConversationService {
 
     return {
       conversations: results.map((p) => p.conversation),
-      nextCursor: hasNext ? results[results.length - 1].id : null,
+      nextCursor: hasNext ? results[results.length - 1].id : undefined, // ✅ undefined au lieu de null
     };
   }
 }

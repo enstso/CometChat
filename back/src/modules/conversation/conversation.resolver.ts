@@ -4,7 +4,7 @@ import { ConversationService } from './conversation.service';
 import { PaginatedConversations } from './dto/paginated-conversation.output';
 import { ConversationPaginationArgs } from './dto/conversation.args';
 import { CreateConversationInput } from './dto/create-conversation.input';
-import { Conversation } from './conversation.model';
+import { Conversation } from './models/conversation.model';
 import { GqlAuthGuard } from '../auth/gql-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 
@@ -15,7 +15,7 @@ export class ConversationResolver {
   @Mutation(() => Conversation)
   async createConversation(
     @Args('input') input: CreateConversationInput,
-  ): Promise<Conversation> {
+  ) {
     return this.conversationService.create(input);
   }
 

@@ -4,6 +4,7 @@ import { SendMessageInput } from './dto/send-message.input';
 import { Queue } from 'bullmq';
 import { PaginatedMessages } from './dto/paginated-message.output';
 import { PrismaService } from '../prisma/prisma.service';
+import { InjectQueue } from '@nestjs/bullmq';
 
 @Injectable()
 export class MessageService {
@@ -33,7 +34,7 @@ export class MessageService {
 
     return {
       messages: results,
-      nextCursor: hasNext ? results[results.length - 1].id : null,
+      nextCursor: hasNext ? results[results.length - 1].id : undefined,
     };
   }
   

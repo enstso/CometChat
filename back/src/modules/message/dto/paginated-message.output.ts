@@ -1,5 +1,5 @@
 import { ObjectType, Field } from '@nestjs/graphql';
-import { Message } from '../models/message.model';
+import { Message } from '../message.model';
 
 @ObjectType()
 export class PaginatedMessages {

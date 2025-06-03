@@ -30,14 +30,14 @@ model Message {
 model Conversation {
   id           String                    @id @default(uuid())
   messages     Message[]
+  updatedAt    DateTime                  @updatedAt
   participants ConversationParticipant[] // inverse de ConversationParticipant.conversation
 }
 
 model ConversationParticipant {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   conversationId String
   userId         String
-
-  conversation Conversation @relation(fields: [conversationId], references: [id])
-  user         User         @relation(fields: [userId], references: [id])
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
 }

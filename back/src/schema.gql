@@ -2,14 +2,59 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Conversation {
+  id: ID!
+  messages: [Message!]!
+  participants: [ConversationParticipant!]!
+}
+
+type ConversationParticipant {
+  id: String!
+  user: User!
+}
+
+input CreateConversationInput {
+  userId1: ID!
+  userId2: ID!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type HealthCheckResponse {
   result: String!
 }
 
+type Message {
+  content: String!
+  createdAt: DateTime!
+  id: ID!
+  sender: User!
+}
+
+type Mutation {
+  createConversation(input: CreateConversationInput!): Conversation!
+  sendMessage(sendMessageInput: SendMessageInput!): String!
+}
+
+type PaginatedConversations {
+  conversations: [Conversation!]!
+  nextCursor: String
+}
+
 type Query {
+  getUserConversations(cursor: String, take: Int! = 10): PaginatedConversations!
   healthCheck: HealthCheckResponse!
   hello: String!
   me: User!
+}
+
+input SendMessageInput {
+  content: String!
+  conversationId: ID!
+  senderId: ID!
 }
 
 type User {

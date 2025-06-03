@@ -24,7 +24,7 @@ export class MessageConsumer extends WorkerHost {
           conversationId: conversationId,
         },
       });
+      console.log(`Message saved: ${content}`);
     }
-    console.log(`Message saved: ${content}`);
   }
 }
