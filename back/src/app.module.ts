@@ -3,13 +3,13 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { AppResolver } from './app.resolver';
 import { AppService } from './app.service';
-import { BullModule } from '@nestjs/bullmq';
 import { GqlModule } from './modules/graphql/graphql.module';
 import { HealthModule } from './modules/health/health.module';
+import { BullMqModule } from './modules/bullmq/bullmq.module';
 
 @Module({
   imports: [
-    BullModule,
+    BullMqModule,
     GqlModule,
     AuthModule,
     UserModule,

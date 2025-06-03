@@ -10,10 +10,10 @@ export class HealthController {
 
   @Get()
   async check() {
-    await this.queue.add('log', {
+    await this.queue.add('health-check', {
       result: 'OK',
     });
-    console.log('Health check triggered!');
+    console.log('Health check triggered! (producer)');
     return { result: 'OK' };
   }
 }
