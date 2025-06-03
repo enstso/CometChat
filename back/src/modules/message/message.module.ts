@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { MessageResolver } from './message.resolver';
 import { MessageService } from './message.service';
-import { MessageConsumer} from './message.consumer';
+import { MessageConsumer } from './message.consumer';
 
 
 @Module({
