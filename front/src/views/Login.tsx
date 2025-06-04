@@ -18,7 +18,7 @@ export default function Login() {
         me {
           id
           email
-          name
+          username
         }
       }
     `;
