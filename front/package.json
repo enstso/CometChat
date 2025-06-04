@@ -9,10 +9,10 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "generate": "graphql-codegen --config codegen.ts"
-
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
+    "@auth0/auth0-react": "^2.3.0",
     "@graphql-codegen/cli": "^5.0.6",
     "@parcel/watcher": "^2.5.1",
     "graphql": "^16.11.0",
