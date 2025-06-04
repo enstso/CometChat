@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./views/Login";
 import Register from "./views/Register";
 import NotFound from "./views/NotFound"; // Import du composant NotFound
+import ChatView from "./views/Chat";
 
 // Composant principal de l'application qui gère les routes
 function App() {
@@ -12,6 +13,7 @@ function App() {
         {/* Route racine affichant la page d'accueil */}
         <Route path="/" element={<h1>Home Page</h1>} />
 
+        <Route path="/chat" element={<ChatView />} />
         {/* Route pour la page de connexion */}
         <Route path="/login" element={<Login />} />
 
