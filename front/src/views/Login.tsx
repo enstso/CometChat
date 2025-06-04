@@ -1,28 +1,18 @@
-import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
+import { gql, useApolloClient } from "@apollo/client";
 import { useAuth0 } from "@auth0/auth0-react";
-import type { LogoutOptions } from "@auth0/auth0-react"; // 👈 ici
+import type { LogoutOptions } from "@auth0/auth0-react";
 
 export default function Login() {
   const {
-    getAccessTokenSilently,
     loginWithRedirect,
     logout,
     isAuthenticated,
     user,
   } = useAuth0();
 
+  const client = useApolloClient(); // 👈 utilise le client global
+
   const callApi = async () => {
-    const token = await getAccessTokenSilently();
-    console.log("Token:", token);
-
-    const client = new ApolloClient({
-      uri: import.meta.env.VITE_API_URL,
-      cache: new InMemoryCache(),
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
     const GET_ME = gql`
       query Me {
         me {
@@ -33,11 +23,15 @@ export default function Login() {
       }
     `;
 
-    const result = await client.query({
-      query: GET_ME,
-      fetchPolicy: "no-cache",
-    });
-    console.log("GraphQL Result:", result);
+    try {
+      const result = await client.query({
+        query: GET_ME,
+        fetchPolicy: "no-cache",
+      });
+      console.log("GraphQL Result:", result);
+    } catch (error) {
+      console.error("Erreur GraphQL :", error);
+    }
   };
 
   return (
