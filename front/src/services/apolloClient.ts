@@ -9,6 +9,7 @@ const httpLink = createHttpLink({
 export const createApolloClient = (getAccessTokenSilently: () => Promise<string>) => {
   const authLink = setContext(async (_, { headers }) => {
     const token = await getAccessTokenSilently();
+    console.log("Token:", token);
     return {
       headers: {
         ...headers,

@@ -4,6 +4,7 @@ import Login from "./views/Login";
 import Register from "./views/Register";
 import NotFound from "./views/NotFound"; // Import du composant NotFound
 import ChatView from "./views/Chat";
+import AuthCallback from "./views/AuthCallback";
 
 // Composant principal de l'application qui gère les routes
 function App() {
@@ -12,6 +13,8 @@ function App() {
       <Routes>
         {/* Route racine affichant la page d'accueil */}
         <Route path="/" element={<h1>Home Page</h1>} />
+
+        <Route path="/auth/callback" element={<AuthCallback />} />
 
         <Route path="/chat" element={<ChatView />} />
         {/* Route pour la page de connexion */}
