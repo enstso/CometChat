@@ -7,6 +7,7 @@ import { CreateConversationInput } from './dto/create-conversation.input';
 import { Conversation } from './models/conversation.model';
 import { GqlAuthGuard } from '../auth/gql-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
+import { ConversationRelay } from './dto/conversation-relay';
 
 @Resolver(() => Conversation)
 export class ConversationResolver {
@@ -18,7 +19,7 @@ export class ConversationResolver {
   }
 
   @UseGuards(GqlAuthGuard)
-  @Query(() => PaginatedConversations)
+  @Query(() => ConversationRelay)
   async getUserConversations(
     @CurrentUser() user: { id: string },
     @Args() paginationArgs: ConversationPaginationArgs,

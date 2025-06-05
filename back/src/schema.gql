@@ -8,9 +8,26 @@ type Conversation {
   participants: [ConversationParticipant!]!
 }
 
+type ConversationEdge {
+  cursor: String!
+  node: Conversation!
+}
+
+type ConversationPageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
 type ConversationParticipant {
   id: String!
   user: User!
+}
+
+type ConversationRelay {
+  edges: [ConversationEdge!]!
+  pageInfo: ConversationPageInfo!
 }
 
 input CreateConversationInput {
@@ -56,14 +73,9 @@ type Mutation {
   sendMessage(sendMessageInput: SendMessageInput!): String!
 }
 
-type PaginatedConversations {
-  conversations: [Conversation!]!
-  nextCursor: String
-}
-
 type Query {
   getMessages(conversationId: String!, cursor: String, limit: Float): MessageRelay!
-  getUserConversations(cursor: String, limit: Int! = 5): PaginatedConversations!
+  getUserConversations(cursor: String, limit: Int! = 5): ConversationRelay!
   healthCheck: HealthCheckResponse!
   hello: String!
   me: User!
