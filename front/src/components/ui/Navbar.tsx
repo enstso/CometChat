@@ -1,17 +1,10 @@
 import { useEffect, useState } from "react";
-import { gql, useApolloClient } from "@apollo/client";
+import { useApolloClient } from "@apollo/client";
 import { useAuth0 } from "@auth0/auth0-react";
 import type { LogoutOptions } from "@auth0/auth0-react";
+import { GET_ME } from "../../services/request";
 
-const GET_ME = gql`
-  query Me {
-    me {
-      id
-      email
-      username
-    }
-  }
-`;
+
 
 export default function Navbar() {
   const { logout, isAuthenticated, isLoading } = useAuth0();

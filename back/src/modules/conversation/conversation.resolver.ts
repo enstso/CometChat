@@ -13,10 +13,8 @@ export class ConversationResolver {
   constructor(private readonly conversationService: ConversationService) {}
 
   @Mutation(() => Conversation)
-  async createConversation(
-    @Args('input') input: CreateConversationInput,
-  ) {
-    return this.conversationService.create(input);
+  async createConversation(@Args('input') input: CreateConversationInput) {
+    return await this.conversationService.create(input);
   }
 
   @UseGuards(GqlAuthGuard)
@@ -25,7 +23,7 @@ export class ConversationResolver {
     @CurrentUser() user: { id: string },
     @Args() paginationArgs: ConversationPaginationArgs,
   ) {
-    return this.conversationService.paginateUserConversations(
+    return await this.conversationService.paginateUserConversations(
       user.id,
       paginationArgs,
     );

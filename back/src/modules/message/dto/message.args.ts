@@ -6,7 +6,7 @@ export class MessagePaginationArgs {
   conversationId: string;
 
   @Field(() => Int, { defaultValue: 20 })
-  take: number;
+  limit: number;
 
   @Field({ nullable: true })
   cursor?: string; // ID du message (ou createdAt si tu veux baser sur le timestamp)

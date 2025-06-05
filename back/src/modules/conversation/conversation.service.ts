@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateConversationInput } from './dto/create-conversation.input';
-import { PaginatedConversations } from './dto/paginated-conversation.output';
 import { ConversationPaginationArgs } from './dto/conversation.args';
+import { ConversationRelay } from './dto/conversation-relay';
+import { Conversation } from '@prisma/client';
 
 @Injectable()
 export class ConversationService {
   constructor(private readonly prisma: PrismaService) {}
-  async create(input: CreateConversationInput) {
-    return this.prisma.conversation.create({
+  async create(input: CreateConversationInput): Promise<Conversation> {
+    return await this.prisma.conversation.create({
       data: {
         participants: {
           create: [
@@ -23,13 +24,13 @@ export class ConversationService {
   async paginateUserConversations(
     userId: string,
     args: ConversationPaginationArgs,
-  ): Promise<PaginatedConversations> {
-    const { take, cursor } = args;
+  ): Promise<ConversationRelay> {
+    const { limit, cursor } = args;
 
     const participants = await this.prisma.conversationParticipant.findMany({
       where: { userId },
       orderBy: { conversation: { updatedAt: 'desc' } },
-      take: take + 1,
+      take: limit + 1,
       ...(cursor && {
         cursor: { id: cursor },
         skip: 1,
@@ -52,12 +53,23 @@ export class ConversationService {
       },
     });
 
-    const hasNext = participants.length > take;
-    const results = hasNext ? participants.slice(0, take) : participants;
+    const hasNextPage = participants.length > limit;
+    const sliced = hasNextPage ? participants.slice(0, limit) : participants;
 
+    const edges = sliced.map((p) => ({
+      cursor: Buffer.from(p.conversation.updatedAt.toISOString()).toString(
+        'base64',
+      ),
+      node: p.conversation,
+    }));
     return {
-      conversations: results.map((p) => p.conversation),
-      nextCursor: hasNext ? results[results.length - 1].id : undefined, // ✅ undefined au lieu de null
+      edges,
+      pageInfo: {
+        hasNextPage,
+        hasPreviousPage: false,
+        startCursor: edges[0]?.cursor,
+        endCursor: edges[edges.length - 1]?.cursor,
+      },
     };
   }
 }

@@ -1,5 +1,5 @@
-import { Field, ObjectType } from "@nestjs/graphql";
-import { User } from "src/modules/user/user.model";
+import { Field, ObjectType } from '@nestjs/graphql';
+import { User } from 'src/modules/user/user.model';
 @ObjectType()
 export class ConversationParticipant {
   @Field(() => String)

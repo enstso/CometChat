@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { MessagePaginationArgs } from './dto/message.args';
 import { SendMessageInput } from './dto/send-message.input';
 import { Queue } from 'bullmq';
-import { PaginatedMessages } from './dto/paginated-message.output';
 import { PrismaService } from '../prisma/prisma.service';
 import { InjectQueue } from '@nestjs/bullmq';
+import { MessageRelay } from './dto/message-relay';
 
 @Injectable()
 export class MessageService {
@@ -13,15 +13,13 @@ export class MessageService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async paginateMessages(
-    args: MessagePaginationArgs,
-  ): Promise<PaginatedMessages> {
-    const { conversationId, take, cursor } = args;
+  async paginateMessages(args: MessagePaginationArgs): Promise<MessageRelay> {
+    const { conversationId, limit, cursor } = args;
 
     const messages = await this.prisma.message.findMany({
       where: { conversationId },
       orderBy: { createdAt: 'desc' },
-      take: take + 1,
+      take: limit + 1,
       ...(cursor && {
         cursor: { id: cursor },
         skip: 1,
@@ -29,15 +27,24 @@ export class MessageService {
       include: { sender: true },
     });
 
-    const hasNext = messages.length > take;
-    const results = hasNext ? messages.slice(0, take) : messages;
+    const hasNextPage = messages.length > limit;
+    const sliced = hasNextPage ? messages.slice(0, limit) : messages;
 
+    const edges = sliced.map((message) => ({
+      cursor: Buffer.from(message.createdAt.toISOString()).toString('base64'),
+      node: message,
+    }));
     return {
-      messages: results,
-      nextCursor: hasNext ? results[results.length - 1].id : undefined,
+      edges,
+      pageInfo: {
+        hasNextPage,
+        hasPreviousPage: false,
+        startCursor: edges[0]?.cursor,
+        endCursor: edges[edges.length - 1]?.cursor,
+      },
     };
   }
-  
+
   async sendMessage(input: SendMessageInput) {
     await this.queue.add('send', input);
     return { result: 'Message en file d’attente' };
