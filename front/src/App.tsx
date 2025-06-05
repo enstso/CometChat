@@ -1,5 +1,6 @@
 // src/App.tsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import PrivateRoute from "./components/authorization/PrivateRoute";
 import Login from "./views/Login";
 import Register from "./views/Register";
 import NotFound from "./views/NotFound"; // Import du composant NotFound
@@ -16,7 +17,7 @@ function App() {
 
         <Route path="/auth/callback" element={<AuthCallback />} />
 
-        <Route path="/chat" element={<ChatView />} />
+        <Route path="/chat" element={<PrivateRoute><ChatView /></PrivateRoute>} />
         {/* Route pour la page de connexion */}
         <Route path="/login" element={<Login />} />
 
