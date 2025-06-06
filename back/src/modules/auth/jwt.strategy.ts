@@ -3,7 +3,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Injectable } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import * as jwksRsa from 'jwks-rsa';
-import { StrategyOptions } from 'passport-jwt';
+import { ValidateUserDto } from './dto/validate-user.dto';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -19,10 +19,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       audience: process.env.AUTH0_AUDIENCE,
       issuer: `https://${process.env.AUTH0_DOMAIN}/`,
       algorithms: ['RS256'],
-    } as any); // 👈 contournement TS ici
+    });
   }
 
-  async validate(payload: any) {
+  async validate(payload: ValidateUserDto) {
     return this.authService.validateUser({
       sub: payload.sub,
       email: payload.email,

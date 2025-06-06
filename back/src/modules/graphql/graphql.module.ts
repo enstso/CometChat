@@ -18,9 +18,9 @@ import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin
   providers: [AppResolver],
 })
 export class GqlModule {
-    constructor() {
-        console.log(process.cwd());
-        // This constructor is intentionally left empty.
-        // It can be used for any initialization logic if needed in the future.
-    }
+  constructor() {
+    console.log(process.cwd());
+    // This constructor is intentionally left empty.
+    // It can be used for any initialization logic if needed in the future.
+  }
 }

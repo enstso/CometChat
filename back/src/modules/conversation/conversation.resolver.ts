@@ -1,7 +1,6 @@
 import { UseGuards } from '@nestjs/common';
 import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { ConversationService } from './conversation.service';
-import { PaginatedConversations } from './dto/paginated-conversation.output';
 import { ConversationPaginationArgs } from './dto/conversation.args';
 import { CreateConversationInput } from './dto/create-conversation.input';
 import { Conversation } from './models/conversation.model';
@@ -22,11 +21,11 @@ export class ConversationResolver {
   @Query(() => ConversationRelay)
   async getUserConversations(
     @CurrentUser() user: { id: string },
-    @Args() paginationArgs: ConversationPaginationArgs,
+    @Args() conversationPaginationArgs: ConversationPaginationArgs,
   ) {
     return await this.conversationService.paginateUserConversations(
       user.id,
-      paginationArgs,
+      conversationPaginationArgs,
     );
   }
 }

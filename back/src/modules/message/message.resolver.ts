@@ -3,6 +3,7 @@ import { MessageService } from './message.service';
 import { SendMessageInput } from './dto/send-message.input';
 import { Message } from './message.model';
 import { MessageRelay } from './dto/message-relay';
+import { MessagePaginationArgs } from './dto/message.args';
 
 @Resolver(() => Message)
 export class MessageResolver {
@@ -10,15 +11,9 @@ export class MessageResolver {
 
   @Query(() => MessageRelay)
   async getMessages(
-    @Args('conversationId') conversationId: string,
-    @Args('limit', { nullable: true }) limit: number,
-    @Args('cursor', { nullable: true }) cursor?: string,
+    @Args() messagePaginationArgs: MessagePaginationArgs,
   ): Promise<MessageRelay> {
-    return await this.messageService.paginateMessages({
-      conversationId,
-      limit,
-      cursor,
-    });
+    return await this.messageService.paginateMessages(messagePaginationArgs);
   }
 
   @Mutation(() => String)

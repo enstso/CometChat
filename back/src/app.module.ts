@@ -17,11 +17,8 @@ import { MessageModule } from './modules/message/message.module';
     UserModule,
     HealthModule,
     ConversationModule,
-    MessageModule
+    MessageModule,
   ],
-  providers: [
-    AppResolver,
-    AppService,
-  ],
+  providers: [AppResolver, AppService],
 })
 export class AppModule {}

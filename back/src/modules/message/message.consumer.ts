@@ -1,6 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
+import { MessageConsumerJobDto } from './dto/message-consumer-job.dto';
 
 @Processor('message-queue')
 export class MessageConsumer extends WorkerHost {
@@ -8,7 +9,7 @@ export class MessageConsumer extends WorkerHost {
     super();
   }
 
-  async process(job: Job<any, any, string>): Promise<void> {
+  async process(job: Job<MessageConsumerJobDto, any, string>): Promise<void> {
     if (job.name === 'send') {
       console.log('Message job received (consumer):');
       console.log('✅ Processing job:', job.name);

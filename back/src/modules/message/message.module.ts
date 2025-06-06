@@ -4,7 +4,6 @@ import { MessageResolver } from './message.resolver';
 import { MessageService } from './message.service';
 import { MessageConsumer } from './message.consumer';
 
-
 @Module({
   imports: [
     // Connexion Redis déjà faite dans BullMqModule

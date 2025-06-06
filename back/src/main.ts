@@ -11,6 +11,11 @@ async function bootstrap() {
   });
   await app.listen(process.env.PORT ?? 3000);
   console.log(`🚀 Application running on: http://localhost:3000/graphql`);
-
 }
-bootstrap();
+bootstrap()
+  .then(() => {
+    console.log('NestJS application has started successfully.');
+  })
+  .catch((error) => {
+    console.error('Error starting NestJS application:', error);
+  });

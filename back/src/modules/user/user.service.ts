@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Auth0UserDto } from '../auth/dto/auth0-user.dto';
 
@@ -25,11 +29,8 @@ export class UserService {
       }
 
       return user;
-    } catch (error) {
-      if (error.code === 'P2025') {
-        throw new UnauthorizedException('User not found');
-      }
-      throw error;
+    } catch {
+      throw new UnauthorizedException('User not found');
     }
   }
   async findById(id: string) {
