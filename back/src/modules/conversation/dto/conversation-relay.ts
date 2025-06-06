@@ -3,7 +3,7 @@ import { ConversationEdge } from './conversation-edge';
 import { ConversationPageInfo } from './conversation-page-info';
 
 @ObjectType()
-export class ConversationRelay {
+export class ConversationConnection {
   @Field(() => [ConversationEdge])
   edges: ConversationEdge[];
 

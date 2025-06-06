@@ -2,26 +2,25 @@ import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { MessageService } from './message.service';
 import { SendMessageInput } from './dto/send-message.input';
 import { Message } from './message.model';
-import { MessageRelay } from './dto/message-relay';
+import { MessageConnection } from './dto/message-relay';
 import { MessagePaginationArgs } from './dto/message.args';
+import { SendMessageResponse } from './dto/send-message.output';
 
 @Resolver(() => Message)
 export class MessageResolver {
   constructor(private readonly messageService: MessageService) {}
 
-  @Query(() => MessageRelay)
+  @Query(() => MessageConnection)
   async getMessages(
     @Args() messagePaginationArgs: MessagePaginationArgs,
-  ): Promise<MessageRelay> {
+  ): Promise<MessageConnection> {
     return await this.messageService.paginateMessages(messagePaginationArgs);
   }
 
-  @Mutation(() => String)
+  @Mutation(() => SendMessageResponse)
   async sendMessage(
     @Args('sendMessageInput') sendMessageInput: SendMessageInput,
-  ) {
-    return this.messageService
-      .sendMessage(sendMessageInput)
-      .then(() => 'Message en file d’attente');
+  ): Promise<SendMessageResponse> {
+    return await this.messageService.sendMessage(sendMessageInput);
   }
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateConversationInput } from './dto/create-conversation.input';
 import { ConversationPaginationArgs } from './dto/conversation.args';
-import { ConversationRelay } from './dto/conversation-relay';
+import { ConversationConnection } from './dto/conversation-relay';
 import { Conversation } from '@prisma/client';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class ConversationService {
       data: {
         participants: {
           create: [
-            { user: { connect: { id: input.userId1 } } },
+            { user: { connect: { auth0Id: input.userId1 } } },
             { user: { connect: { id: input.userId2 } } },
           ],
         },
@@ -24,7 +24,7 @@ export class ConversationService {
   async paginateUserConversations(
     userId: string,
     args: ConversationPaginationArgs,
-  ): Promise<ConversationRelay> {
+  ): Promise<ConversationConnection> {
     const { limit, cursor } = args;
 
     const participants = await this.prisma.conversationParticipant.findMany({

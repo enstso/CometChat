@@ -4,7 +4,8 @@ import { SendMessageInput } from './dto/send-message.input';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 import { InjectQueue } from '@nestjs/bullmq';
-import { MessageRelay } from './dto/message-relay';
+import { MessageConnection } from './dto/message-relay';
+import { SendMessageResponse } from './dto/send-message.output';
 
 @Injectable()
 export class MessageService {
@@ -13,7 +14,9 @@ export class MessageService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async paginateMessages(args: MessagePaginationArgs): Promise<MessageRelay> {
+  async paginateMessages(
+    args: MessagePaginationArgs,
+  ): Promise<MessageConnection> {
     const { conversationId, limit, cursor } = args;
 
     const messages = await this.prisma.message.findMany({
@@ -45,8 +48,11 @@ export class MessageService {
     };
   }
 
-  async sendMessage(input: SendMessageInput) {
-    await this.queue.add('send', input);
-    return { result: 'Message en file d’attente' };
+  async sendMessage(input: SendMessageInput): Promise<SendMessageResponse> {
+    const job = await this.queue.add('send', input);
+    return {
+      result: 'Message en file d’attente',
+      jobId: job.id,
+    };
   }
 }

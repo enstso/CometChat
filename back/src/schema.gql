@@ -8,6 +8,11 @@ type Conversation {
   participants: [ConversationParticipant!]!
 }
 
+type ConversationConnection {
+  edges: [ConversationEdge!]!
+  pageInfo: ConversationPageInfo!
+}
+
 type ConversationEdge {
   cursor: String!
   node: Conversation!
@@ -21,13 +26,8 @@ type ConversationPageInfo {
 }
 
 type ConversationParticipant {
-  id: String!
+  id: ID!
   user: User!
-}
-
-type ConversationRelay {
-  edges: [ConversationEdge!]!
-  pageInfo: ConversationPageInfo!
 }
 
 input CreateConversationInput {
@@ -51,6 +51,11 @@ type Message {
   sender: User!
 }
 
+type MessageConnection {
+  edges: [MessageEdge!]!
+  pageInfo: MessagePageInfo!
+}
+
 type MessageEdge {
   cursor: String!
   node: Message!
@@ -63,28 +68,29 @@ type MessagePageInfo {
   startCursor: String
 }
 
-type MessageRelay {
-  edges: [MessageEdge!]!
-  pageInfo: MessagePageInfo!
-}
-
 type Mutation {
   createConversation(input: CreateConversationInput!): Conversation!
-  sendMessage(sendMessageInput: SendMessageInput!): String!
+  sendMessage(sendMessageInput: SendMessageInput!): SendMessageResponse!
 }
 
 type Query {
-  getMessages(conversationId: String!, cursor: String, limit: Float): MessageRelay!
-  getUserConversations(cursor: String, limit: Int! = 5): ConversationRelay!
+  getMessages(conversationId: ID!, cursor: String, limit: Int! = 20): MessageConnection!
+  getUserConversations(cursor: String, limit: Int! = 5): ConversationConnection!
   healthCheck: HealthCheckResponse!
   hello: String!
   me: User!
+  searchUsers(query: String!): [User!]!
 }
 
 input SendMessageInput {
   content: String!
   conversationId: ID!
   senderId: ID!
+}
+
+type SendMessageResponse {
+  jobId: ID
+  result: String!
 }
 
 type User {

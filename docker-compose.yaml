@@ -49,34 +49,34 @@ services:
       - postgres_network
     restart: unless-stopped
 
-  front:
-    container_name: front
-    build:
-      context: front
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    ports:
-      - "5173:5173"
-
-  back:
-    container_name: back
-    build:
-      context: back
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    depends_on:
-      - redis
-      - postgres
+  #front:
+  #  container_name: front
+  #  build:
+  #    context: front
+  #    dockerfile: Dockerfile
+  #  restart: unless-stopped
+  #  ports:
+  #    - "5173:5173"
+#
+  #back:
+  #  container_name: back
+  #  build:
+  #    context: back
+  #    dockerfile: Dockerfile
+  #  restart: unless-stopped
+  #  ports:
+  #    - "3000:3000"
+  #  depends_on:
+  #    - redis
+  #    - postgres
   
 
 volumes:
   redis_data:
   postgres:
   pgadmin:
-  front:
-  back:
+  #front:
+  #back:
 
 networks:
   postgres_network:

@@ -6,9 +6,9 @@ const httpLink = createHttpLink({
   uri: import.meta.env.VITE_API_URL,
 });
 
-export const createApolloClient = (getAccessTokenSilently: () => Promise<string>) => {
+export const createApolloClient = (getIdTokenClaims: () => Promise<string>) => {
   const authLink = setContext(async (_, { headers }) => {
-    const token = await getAccessTokenSilently();
+    const token = await getIdTokenClaims();
     console.log("Token:", token);
     return {
       headers: {

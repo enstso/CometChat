@@ -38,4 +38,21 @@ export class UserService {
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
+
+  async searchUsersByUsername(query: string) {
+    return await this.prisma.user.findMany({
+      where: {
+        username: {
+          contains: query,
+          mode: 'insensitive', // ignore la casse
+        },
+      },
+      take: 10, // limite les résultats pour éviter les abus
+      select: {
+        id: true,
+        username: true,
+        email: true,
+      },
+    });
+  }
 }

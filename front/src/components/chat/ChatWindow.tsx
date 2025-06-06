@@ -3,14 +3,8 @@ import Input from "../ui/Input";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
 import { cn } from "../../lib/utils";
-
-const fetchMessages = async (conversationId: number, skip: number, take: number) => {
-  return new Array(take).fill(null).map((_, i) => ({
-    id: skip + i,
-    fromMe: (skip + i) % 2 === 0,
-    content: `Message ${(skip + i)} dans conversation ${conversationId}`,
-  }));
-};
+import { useApolloClient, useMutation } from "@apollo/client";
+import { GET_MESSAGES, GET_ME, SEND_MESSAGE } from "../../services/requestsGql";
 
 const Message = ({ message }: any) => (
   <div
@@ -27,25 +21,60 @@ export default function ChatWindow({ selectedConversation }: any) {
   const [messages, setMessages] = useState<any[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
-  const messageSkip = useRef(0);
+  const [me, setMe] = useState<any>(null);
+  const [messageText, setMessageText] = useState("");
+
+  const messageCursor = useRef<string | null>(null);
   const messageContainer = useRef<any>(null);
 
+  const client = useApolloClient();
+  const [sendMessage] = useMutation(SEND_MESSAGE);
+
   useEffect(() => {
-    if (selectedConversation !== null) {
+    const fetchMe = async () => {
+      const { data } = await client.query({ query: GET_ME });
+      setMe(data.me);
+    };
+    fetchMe();
+  }, []);
+
+  useEffect(() => {
+    if (selectedConversation !== null && me) {
       setMessages([]);
-      messageSkip.current = 0;
+      messageCursor.current = null;
       setHasMoreMessages(true);
       loadMoreMessages(selectedConversation);
     }
-  }, [selectedConversation]);
+  }, [selectedConversation, me]);
 
   const loadMoreMessages = async (conversationId: number) => {
     if (!hasMoreMessages || loadingMessages) return;
     setLoadingMessages(true);
-    const newMsgs = await fetchMessages(conversationId, messageSkip.current, 20);
-    setMessages((prev) => [...newMsgs.reverse(), ...prev]);
-    messageSkip.current += 20;
-    if (newMsgs.length < 20) setHasMoreMessages(false);
+
+    try {
+      const { data } = await client.query({
+        query: GET_MESSAGES,
+        variables: {
+          conversationId: String(conversationId),
+          limit: 20,
+          cursor: messageCursor.current,
+        },
+        fetchPolicy: "no-cache",
+      });
+
+      const newMessages = data.getMessages.edges.map((edge: any) => ({
+        id: edge.node.id,
+        content: edge.node.content,
+        fromMe: edge.node.sender.username === me.username,
+      }));
+
+      setMessages((prev) => [...newMessages.reverse(), ...prev]);
+      messageCursor.current = data.getMessages.pageInfo.endCursor;
+      setHasMoreMessages(data.getMessages.pageInfo.hasNextPage);
+    } catch (err) {
+      console.error("Erreur lors du chargement des messages :", err);
+    }
+
     setLoadingMessages(false);
   };
 
@@ -60,23 +89,70 @@ export default function ChatWindow({ selectedConversation }: any) {
     }
   };
 
+  const handleSendMessage = async () => {
+    if (!messageText.trim()) return;
+
+    try {
+      await sendMessage({
+        variables: {
+          sendMessageInput: {
+            conversationId: String(selectedConversation),
+            content: messageText,
+            senderId: me.id,
+          },
+        },
+      });
+
+      const newMessage = {
+        id: `temp-${Date.now()}`,
+        content: messageText,
+        fromMe: true,
+      };
+      setMessages((prev) => [...prev, newMessage]);
+      setMessageText("");
+
+      setTimeout(() => {
+        const el = messageContainer.current;
+        if (el) el.scrollTop = el.scrollHeight;
+      }, 100);
+    } catch (err) {
+      console.error("Erreur lors de l'envoi du message :", err);
+    }
+  };
+
   return (
     <div className="w-3/4 flex flex-col">
-      <div className="border-b p-4 font-bold text-lg">{selectedConversation !== null ? `Conversation #${selectedConversation}` : "Sélectionnez une conversation"}</div>
+      <div className="border-b p-4 font-bold text-lg">
+        {selectedConversation !== null
+          ? `Conversation #${selectedConversation}`
+          : "Sélectionnez une conversation"}
+      </div>
       <div
         className="flex-1 overflow-y-auto p-4 flex flex-col"
         onScroll={handleScrollMessages}
         ref={messageContainer}
       >
-        {loadingMessages && <div className="flex justify-center"><Spinner /></div>}
+        {loadingMessages && (
+          <div className="flex justify-center">
+            <Spinner />
+          </div>
+        )}
         {messages.map((msg) => (
           <Message key={msg.id} message={msg} />
         ))}
       </div>
       {selectedConversation !== null && (
         <div className="p-4 border-t flex gap-2">
-          <Input className="flex-1" placeholder="Écrivez un message..." />
-          <Button>Envoyer</Button>
+          <Input
+            className="flex-1"
+            placeholder="Écrivez un message..."
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSendMessage();
+            }}
+          />
+          <Button onClick={handleSendMessage}>Envoyer</Button>
         </div>
       )}
     </div>

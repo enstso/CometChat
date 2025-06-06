@@ -1,4 +1,4 @@
-import ConversationList from "../components/chat/ConversationList";
+import ConversationList from "../components/conversation/ConversationList";
 import ChatWindow from "../components/chat/ChatWindow";
 import Navbar from "../components/ui/Navbar";
 import { useState } from "react";

@@ -3,7 +3,7 @@ import { MessageEdge } from './message-edge';
 import { MessagePageInfo } from './message-page-info';
 
 @ObjectType()
-export class MessageRelay {
+export class MessageConnection {
   @Field(() => [MessageEdge])
   edges: MessageEdge[];
 

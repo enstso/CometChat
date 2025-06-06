@@ -8,6 +8,7 @@ export class AuthService {
   constructor(private readonly userService: UserService) {}
 
   async validateUser(payload: Auth0UserDto) {
+    console.log('Validating user:', payload);
     return this.userService.findOrCreateUser(payload);
   }
 }
