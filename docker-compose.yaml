@@ -1,18 +1,6 @@
 version: '3.8'
 
 services:
-  rabbitmq:
-    image: rabbitmq:management
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"   # Port AMQP
-      - "15672:15672" # Port interface de gestion
-    environment:
-      - RABBITMQ_DEFAULT_USER=user
-      - RABBITMQ_DEFAULT_PASS=password
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-
   redis:
     image: redis:latest
     restart: always
@@ -30,8 +18,6 @@ services:
       - "8081:8081"
     depends_on:
       - redis
-
-
   postgres:
     container_name: postgres_container
     image: postgres
