@@ -49,11 +49,43 @@ services:
       - postgres_network
     restart: unless-stopped
 
+  front:
+    container_name: front
+    build:
+      context: front
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+
+  back:
+    container_name: back
+    build:
+      context: back
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=postgres_container
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+      - POSTGRES_DB=${POSTGRES_DB:-cometChatDb}
+    depends_on:
+      - redis
+      - postgres
+  
+
 volumes:
-  rabbitmq_data:
   redis_data:
   postgres:
   pgadmin:
+  front:
+  back:
 
 networks:
   postgres_network:
