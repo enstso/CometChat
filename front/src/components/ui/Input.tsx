@@ -1,11 +1,18 @@
 import type { InputHTMLAttributes } from "react";
 import { cn } from "../../lib/utils";
+import { motion } from "framer-motion";
 
-export default function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export default function Input({
+  className,
+  ...props
+}: InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <input
+    <motion.input
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
       className={cn(
-        "border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
+        "w-full border border-gray-300 rounded-xl px-4 py-2 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200",
         className
       )}
       {...props}

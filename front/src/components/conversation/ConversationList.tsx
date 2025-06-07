@@ -10,14 +10,30 @@ import Input from "../ui/Input";
 import ConversationItem from "./ConversationItem";
 import SearchUserItem from "../chat/SearchUserItem";
 import { useAuth0 } from "@auth0/auth0-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+interface Conversation {
+  id: string;
+  user: string;
+  lastMessage?: string;
+  title: string;
+  createdAt: string;
+}
+
+interface ConversationListProps {
+  selectedConversation: number | null;
+  onSelectToSetTitle: (title: string) => void;
+  onSelect: (id: string) => any;
+}
 
 export default function ConversationList({
   selectedConversation,
+  onSelectToSetTitle,
   onSelect,
-}: any) {
-  const [conversations, setConversations] = useState<any[]>([]);
+}: ConversationListProps) {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [conversationLoading, setConversationLoading] = useState(false);
-  const conversationContainer = useRef<any>(null);
+  const conversationContainer = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [creating, setCreating] = useState(false);
@@ -37,23 +53,32 @@ export default function ConversationList({
           fetchPolicy: "no-cache",
         });
 
-        const conversations = data.getUserConversations.edges.map((edge: any) => {
-          const participants = edge.node.participants || [];
-          const otherParticipant = participants.find(
-            (p: any) => p.user.auth0Id !== currentUserId
-          );
+        const fetchedConversations = data.getUserConversations.edges.map(
+          (edge: any) => {
+            const participants = edge.node.participants || [];
+            const otherParticipant = participants.find(
+              (p: any) => p.user.auth0Id !== currentUserId
+            );
 
-          return {
-            id: edge.node.id,
-            user: otherParticipant?.user.username || "Inconnu",
-            lastMessage: edge.node.messages && edge.node.messages.length > 0
-              ? edge.node.messages[0].content
-              : "",
-          };
-        });
-        setConversations(conversations);
+            return {
+              id: edge.node.id,
+              title: edge.node.title || "Untitled Conversation",
+              user: otherParticipant?.user.username || "Unknown",
+              lastMessage:
+                edge.node.messages && edge.node.messages.length > 0
+                  ? edge.node.messages[0].content
+                  : "New conversation",
+              createdAt:
+                edge.node.messages && edge.node.messages.length > 0
+                  ? edge.node.messages[0].createdAt
+                  : "",
+            };
+          }
+        );
+
+        setConversations(fetchedConversations);
       } catch (err) {
-        console.error("Erreur lors du chargement des conversations:", err);
+        console.error("Error loading conversations:", err);
       } finally {
         setConversationLoading(false);
       }
@@ -62,9 +87,9 @@ export default function ConversationList({
     fetchConversations();
   }, [currentUserId, client]);
 
-  // Recherche automatique quand input > 3 caractères, avec debounce
+  // Debounced search for users
   useEffect(() => {
-    if (search.length <= 0) {
+    if (search.length === 0) {
       setSearchResults([]);
       return;
     }
@@ -78,21 +103,21 @@ export default function ConversationList({
         });
         setSearchResults(data.searchUsers);
       } catch (error) {
-        console.error("Erreur lors de la recherche des utilisateurs:", error);
+        console.error("Error searching users:", error);
       }
-    }, 300); // délai debounce de 300ms
+    }, 300);
 
     return () => clearTimeout(handler);
   }, [search, client]);
 
   const handleScrollConversation = () => {
     const el = conversationContainer.current;
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
-      // Pagination future
+    if (el && el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
+      // Future pagination logic here
     }
   };
 
-  const handleCreateConversation = async (userId: string) => {
+  const handleCreateConversation = async (userId: string, title: string | null) => {
     if (!currentUserId) return;
 
     setCreating(true);
@@ -101,6 +126,7 @@ export default function ConversationList({
         mutation: CREATE_CONVERSATION,
         variables: {
           input: {
+            title: title || "New Conversation",
             userId1: currentUserId,
             userId2: userId,
           },
@@ -108,22 +134,24 @@ export default function ConversationList({
       });
 
       const newConversation = data.createConversation;
-
       setConversations((prev) => [
         {
           id: newConversation.id,
           user: newConversation.participants.find(
             (p: any) => p.user.id === userId
           )?.user.username,
-          lastMessage: "Nouvelle conversation",
+          lastMessage: "New conversation",
+          title: newConversation.title,
+          createdAt: new Date().toISOString(),
         },
         ...prev,
       ]);
       onSelect(newConversation.id);
+      onSelectToSetTitle(newConversation.title);
       setSearch("");
       setSearchResults([]);
     } catch (err) {
-      console.error("Erreur création conversation:", err);
+      console.error("Error creating conversation:", err);
     } finally {
       setCreating(false);
     }
@@ -131,42 +159,72 @@ export default function ConversationList({
 
   return (
     <div
-      className="w-1/4 border-r border-gray-300 overflow-y-auto"
-      onScroll={handleScrollConversation}
       ref={conversationContainer}
+      onScroll={handleScrollConversation}
+      className="w-full sm:w-1/3 md:w-1/4 border-r border-gray-300 overflow-y-auto h-full"
     >
-      <div className="p-4 border-b">
-        <p className="font-bold text-xl">Conversations</p>
-        <div className="mt-2">
+      <div className="p-4 border-b sticky top-0 bg-white z-20">
+        <p className="font-bold text-xl text-indigo-700">Conversations</p>
+        <div className="mt-3">
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher un utilisateur..."
+            placeholder="Search users..."
+            className="w-full"
           />
         </div>
 
-        {searchResults.length > 0 && (
-          <div className="mt-2 space-y-2">
-            {searchResults.map((user) => (
-              <SearchUserItem
-                key={user.id}
-                user={user}
-                onCreate={handleCreateConversation}
-                disabled={creating}
-              />
-            ))}
-          </div>
-        )}
+        <AnimatePresence>
+          {searchResults.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-3 space-y-2 max-h-60 overflow-auto"
+            >
+              {searchResults.map((user) => (
+                <SearchUserItem
+                  key={user.id}
+                  user={user}
+                  onCreate={handleCreateConversation}
+                  disabled={creating}
+                />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {conversations.map((conv) => (
-        <ConversationItem
-          key={conv.id}
-          conversation={conv}
-          selected={selectedConversation === conv.id}
-          onSelect={onSelect}
-        />
-      ))}
+      <div className="divide-y divide-gray-200">
+        <AnimatePresence>
+          {conversations.length === 0 && !conversationLoading && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="p-4 text-center text-gray-500"
+            >
+              No conversations yet
+            </motion.p>
+          )}
+
+          {conversations.map((conv) => (
+            <motion.div
+              key={conv.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              layout
+            >
+              <ConversationItem
+                conversation={conv}
+                selected={selectedConversation === conv.id}
+                onSelect={onSelect}
+                onSelectToSetTitle={onSelectToSetTitle}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
 
       {conversationLoading && (
         <div className="p-4 flex justify-center">

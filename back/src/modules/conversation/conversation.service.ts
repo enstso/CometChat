@@ -11,6 +11,7 @@ export class ConversationService {
   async create(input: CreateConversationInput): Promise<Conversation> {
     return await this.prisma.conversation.create({
       data: {
+        title: input.title,
         participants: {
           create: [
             { user: { connect: { auth0Id: input.userId1 } } },

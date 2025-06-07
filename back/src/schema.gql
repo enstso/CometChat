@@ -6,6 +6,7 @@ type Conversation {
   id: ID!
   messages: [Message!]!
   participants: [ConversationParticipant!]!
+  title: String!
 }
 
 type ConversationConnection {
@@ -31,6 +32,7 @@ type ConversationParticipant {
 }
 
 input CreateConversationInput {
+  title: String!
   userId1: ID!
   userId2: ID!
 }

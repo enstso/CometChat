@@ -30,6 +30,7 @@ export const GET_USER_CONVERSATIONS = gql`
         cursor
         node {
           id
+          title
           messages {
           content
           createdAt
@@ -89,6 +90,7 @@ export const CREATE_CONVERSATION = gql`
   mutation CreateConversation($input: CreateConversationInput!) {
     createConversation(input: $input) {
       id
+      title
       participants {
         id
         user {

@@ -29,6 +29,7 @@ model Message {
 
 model Conversation {
   id           String                    @id @default(uuid())
+  title        String
   messages     Message[]
   updatedAt    DateTime                  @updatedAt
   participants ConversationParticipant[] // inverse de ConversationParticipant.conversation
