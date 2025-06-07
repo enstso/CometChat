@@ -62,6 +62,7 @@ export class ConversationService {
       ),
       node: p.conversation,
     }));
+    console.log(sliced[0].conversation.participants);
     return {
       edges,
       pageInfo: {

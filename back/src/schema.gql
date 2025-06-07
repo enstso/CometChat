@@ -94,6 +94,7 @@ type SendMessageResponse {
 }
 
 type User {
+  auth0Id: String!
   email: String
   id: ID!
   username: String!

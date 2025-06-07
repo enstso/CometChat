@@ -7,7 +7,6 @@ import {
   GET_USER_CONVERSATIONS,
 } from "../../services/requestsGql";
 import Input from "../ui/Input";
-import Button from "../ui/Button";
 import ConversationItem from "./ConversationItem";
 import SearchUserItem from "../chat/SearchUserItem";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -27,7 +26,6 @@ export default function ConversationList({
   const { user } = useAuth0();
   const currentUserId: string | undefined = user?.sub;
 
-  // ✅ Récupération initiale des conversations
   useEffect(() => {
     const fetchConversations = async () => {
       if (!currentUserId) return;
@@ -40,16 +38,19 @@ export default function ConversationList({
         });
 
         const conversations = data.getUserConversations.edges.map((edge: any) => {
-          const otherParticipant = edge.node.participants.find(
-            (p: any) => p.user.id !== currentUserId
+          const participants = edge.node.participants || [];
+          const otherParticipant = participants.find(
+            (p: any) => p.user.auth0Id !== currentUserId
           );
+
           return {
             id: edge.node.id,
             user: otherParticipant?.user.username || "Inconnu",
-            lastMessage: "", // Peut être mis à jour avec le dernier message
+            lastMessage: edge.node.messages && edge.node.messages.length > 0
+              ? edge.node.messages[0].content
+              : "",
           };
         });
-
         setConversations(conversations);
       } catch (err) {
         console.error("Erreur lors du chargement des conversations:", err);
@@ -61,15 +62,28 @@ export default function ConversationList({
     fetchConversations();
   }, [currentUserId, client]);
 
-  const handleSearch = async () => {
-    if (!search.trim()) return;
-    const { data } = await client.query({
-      query: SEARCH_USERS,
-      variables: { query: search },
-      fetchPolicy: "no-cache",
-    });
-    setSearchResults(data.searchUsers);
-  };
+  // Recherche automatique quand input > 3 caractères, avec debounce
+  useEffect(() => {
+    if (search.length <= 0) {
+      setSearchResults([]);
+      return;
+    }
+
+    const handler = setTimeout(async () => {
+      try {
+        const { data } = await client.query({
+          query: SEARCH_USERS,
+          variables: { query: search },
+          fetchPolicy: "no-cache",
+        });
+        setSearchResults(data.searchUsers);
+      } catch (error) {
+        console.error("Erreur lors de la recherche des utilisateurs:", error);
+      }
+    }, 300); // délai debounce de 300ms
+
+    return () => clearTimeout(handler);
+  }, [search, client]);
 
   const handleScrollConversation = () => {
     const el = conversationContainer.current;
@@ -123,16 +137,14 @@ export default function ConversationList({
     >
       <div className="p-4 border-b">
         <p className="font-bold text-xl">Conversations</p>
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2">
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher un utilisateur..."
           />
-          <Button onClick={handleSearch} disabled={creating}>
-            OK
-          </Button>
         </div>
+
         {searchResults.length > 0 && (
           <div className="mt-2 space-y-2">
             {searchResults.map((user) => (
@@ -147,7 +159,6 @@ export default function ConversationList({
         )}
       </div>
 
-      {/* Liste des conversations */}
       {conversations.map((conv) => (
         <ConversationItem
           key={conv.id}

@@ -30,12 +30,20 @@ export const GET_USER_CONVERSATIONS = gql`
         cursor
         node {
           id
+          messages {
+          content
+          createdAt
+          sender {
+          username
+          }
+          }
           participants {
             id
             user {
               id
               username
               email
+              auth0Id
             }
           }
         }

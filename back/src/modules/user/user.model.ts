@@ -5,6 +5,9 @@ export class User {
   @Field(() => ID)
   id: string;
 
+  @Field(() => String)
+  auth0Id: string;
+
   @Field()
   username: string;
 

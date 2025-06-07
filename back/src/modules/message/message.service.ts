@@ -30,18 +30,19 @@ export class MessageService {
       include: { sender: true },
     });
 
-    const hasNextPage = messages.length > limit;
-    const sliced = hasNextPage ? messages.slice(0, limit) : messages;
+    const hasPreviousPage = messages.length > limit;
+    const sliced = hasPreviousPage ? messages.slice(0, limit) : messages;
 
     const edges = sliced.map((message) => ({
-      cursor: Buffer.from(message.createdAt.toISOString()).toString('base64'),
+      cursor: message.id, 
       node: message,
     }));
+
     return {
       edges,
       pageInfo: {
-        hasNextPage,
-        hasPreviousPage: false,
+        hasPreviousPage,
+        hasNextPage: false,
         startCursor: edges[0]?.cursor,
         endCursor: edges[edges.length - 1]?.cursor,
       },

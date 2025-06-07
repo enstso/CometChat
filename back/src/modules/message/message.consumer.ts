@@ -18,10 +18,13 @@ export class MessageConsumer extends WorkerHost {
       const { content, senderId, conversationId } = job.data;
       // Here you would typically handle the message sending logic
       // For example, saving the message to the database
+      const sender = await this.prisma.user.findUniqueOrThrow({
+        where: { auth0Id: senderId },
+      });
       await this.prisma.message.create({
         data: {
           content: content,
-          senderId: senderId,
+          senderId: sender.id,
           conversationId: conversationId,
         },
       });

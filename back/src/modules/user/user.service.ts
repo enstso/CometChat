@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Auth0UserDto } from '../auth/dto/auth0-user.dto';
+import { User } from './user.model';
 
 @Injectable()
 export class UserService {
@@ -39,19 +40,23 @@ export class UserService {
     return user;
   }
 
-  async searchUsersByUsername(query: string) {
+  async searchUsersByUsername(query: string, currentUser: User) {
     return await this.prisma.user.findMany({
       where: {
+        NOT: {
+          id: currentUser.id, // Exclure l'utilisateur actuel
+        },
         username: {
-          contains: query,
+          startsWith: query,
           mode: 'insensitive', // ignore la casse
         },
       },
-      take: 10, // limite les résultats pour éviter les abus
+      take: 10,
       select: {
         id: true,
         username: true,
         email: true,
+        auth0Id: true,
       },
     });
   }

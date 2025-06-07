@@ -12,8 +12,11 @@ export class UserResolver {
 
   @Query(() => [User])
   @UseGuards(GqlAuthGuard)
-  async searchUsers(@Args('query') query: string): Promise<User[]> {
-    return await this.userService.searchUsersByUsername(query);
+  async searchUsers(
+    @Args('query') query: string,
+    @CurrentUser() currentUser: User,
+  ): Promise<User[]> {
+    return await this.userService.searchUsersByUsername(query, currentUser);
   }
 
   @Query(() => User)
