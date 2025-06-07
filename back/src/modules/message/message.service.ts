@@ -1,0 +1,59 @@
+import { Injectable } from '@nestjs/common';
+import { MessagePaginationArgs } from './dto/message.args';
+import { SendMessageInput } from './dto/send-message.input';
+import { Queue } from 'bullmq';
+import { PrismaService } from '../prisma/prisma.service';
+import { InjectQueue } from '@nestjs/bullmq';
+import { MessageConnection } from './dto/message-relay';
+import { SendMessageResponse } from './dto/send-message.output';
+
+@Injectable()
+export class MessageService {
+  constructor(
+    @InjectQueue('message-queue') private queue: Queue,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  async paginateMessages(
+    args: MessagePaginationArgs,
+  ): Promise<MessageConnection> {
+    const { conversationId, limit, cursor } = args;
+
+    const messages = await this.prisma.message.findMany({
+      where: { conversationId },
+      orderBy: { createdAt: 'desc' },
+      take: limit + 1,
+      ...(cursor && {
+        cursor: { id: cursor },
+        skip: 1,
+      }),
+      include: { sender: true },
+    });
+
+    const hasPreviousPage = messages.length > limit;
+    const sliced = hasPreviousPage ? messages.slice(0, limit) : messages;
+
+    const edges = sliced.map((message) => ({
+      cursor: message.id, 
+      node: message,
+    }));
+
+    return {
+      edges,
+      pageInfo: {
+        hasPreviousPage,
+        hasNextPage: false,
+        startCursor: edges[0]?.cursor,
+        endCursor: edges[edges.length - 1]?.cursor,
+      },
+    };
+  }
+
+  async sendMessage(input: SendMessageInput): Promise<SendMessageResponse> {
+    const job = await this.queue.add('send', input);
+    return {
+      result: 'Message en file d’attente',
+      jobId: job.id,
+    };
+  }
+}

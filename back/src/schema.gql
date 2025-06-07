@@ -1,0 +1,103 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Conversation {
+  id: ID!
+  messages: [Message!]!
+  participants: [ConversationParticipant!]!
+  title: String!
+}
+
+type ConversationConnection {
+  edges: [ConversationEdge!]!
+  pageInfo: ConversationPageInfo!
+}
+
+type ConversationEdge {
+  cursor: String!
+  node: Conversation!
+}
+
+type ConversationPageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type ConversationParticipant {
+  id: ID!
+  user: User!
+}
+
+input CreateConversationInput {
+  title: String!
+  userId1: ID!
+  userId2: ID!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type HealthCheckResponse {
+  result: String!
+}
+
+type Message {
+  content: String!
+  createdAt: DateTime!
+  id: ID!
+  sender: User!
+}
+
+type MessageConnection {
+  edges: [MessageEdge!]!
+  pageInfo: MessagePageInfo!
+}
+
+type MessageEdge {
+  cursor: String!
+  node: Message!
+}
+
+type MessagePageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Mutation {
+  createConversation(input: CreateConversationInput!): Conversation!
+  sendMessage(sendMessageInput: SendMessageInput!): SendMessageResponse!
+}
+
+type Query {
+  getMessages(conversationId: ID!, cursor: String, limit: Int! = 20): MessageConnection!
+  getUserConversations(cursor: String, limit: Int! = 5): ConversationConnection!
+  healthCheck: HealthCheckResponse!
+  hello: String!
+  me: User!
+  searchUsers(query: String!): [User!]!
+}
+
+input SendMessageInput {
+  content: String!
+  conversationId: ID!
+  senderId: ID!
+}
+
+type SendMessageResponse {
+  jobId: ID
+  result: String!
+}
+
+type User {
+  auth0Id: String!
+  email: String
+  id: ID!
+  username: String!
+}
