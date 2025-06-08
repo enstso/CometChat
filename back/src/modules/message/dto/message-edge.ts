@@ -1,5 +1,5 @@
 import { ObjectType, Field } from '@nestjs/graphql';
-import { Message } from '../message.model';
+import { Message } from '../models/message.model';
 
 @ObjectType()
 export class MessageEdge {

@@ -17,9 +17,11 @@
     "@parcel/watcher": "^2.5.1",
     "framer-motion": "^12.16.0",
     "graphql": "^16.11.0",
+    "lucide-react": "^0.513.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.1"
+    "react-router-dom": "^7.6.1",
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

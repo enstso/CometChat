@@ -1,7 +1,7 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { Request } from 'express';
-import { User } from '../user/user.model';
+import { User } from '../user/models/user.model';
 
 interface GqlContext {
   req: Request & { user?: User };

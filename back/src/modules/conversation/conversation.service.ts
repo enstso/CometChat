@@ -1,27 +1,72 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateConversationInput } from './dto/create-conversation.input';
 import { ConversationPaginationArgs } from './dto/conversation.args';
 import { ConversationConnection } from './dto/conversation-relay';
 import { Conversation } from '@prisma/client';
-
+import { WebsocketService } from '../websocket/websocket.service';
 @Injectable()
 export class ConversationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly webSocketService: WebsocketService,
+  ) {}
   async create(input: CreateConversationInput): Promise<Conversation> {
-    return await this.prisma.conversation.create({
+    // Récupère les deux utilisateurs
+    const user1 = await this.prisma.user.findUnique({
+      where: { auth0Id: input.userId1 },
+    });
+    const user2 = await this.prisma.user.findUnique({
+      where: { id: input.userId2 },
+    });
+
+    if (!user1 || !user2) {
+      throw new BadRequestException('User(s) not found');
+    }
+
+    // Vérifie si une conversation existe déjà entre ces deux utilisateurs
+    const existing = await this.prisma.conversation.findFirst({
+      where: {
+        participants: {
+          every: {
+            userId: { in: [user1.id, user2.id] },
+          },
+        },
+      },
+      include: {
+        participants: { include: { user: true } },
+      },
+    });
+
+    // Si une conversation existe et contient uniquement ces deux participants
+    if (existing && existing.participants.length === 2) {
+      return existing;
+    }
+
+    // Sinon, on en crée une nouvelle
+    const conversation = await this.prisma.conversation.create({
       data: {
         title: input.title,
         participants: {
           create: [
-            { user: { connect: { auth0Id: input.userId1 } } },
-            { user: { connect: { id: input.userId2 } } },
+            { user: { connect: { id: user1.id } } },
+            { user: { connect: { id: user2.id } } },
           ],
         },
       },
       include: { participants: { include: { user: true } } },
     });
+    // Optionnel : notifier via WebSocket
+    this.webSocketService.server
+      .to(user1.id)
+      .emit('newConversation', conversation);
+    this.webSocketService.server
+      .to(user2.id)
+      .emit('newConversation', conversation);
+
+    return conversation;
   }
+
   async paginateUserConversations(
     userId: string,
     args: ConversationPaginationArgs,
@@ -63,7 +108,6 @@ export class ConversationService {
       ),
       node: p.conversation,
     }));
-    console.log(sliced[0].conversation.participants);
     return {
       edges,
       pageInfo: {

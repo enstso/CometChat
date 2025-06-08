@@ -10,4 +10,7 @@ export class SendMessageInput {
 
   @Field(() => ID)
   conversationId: string;
+
+  @Field(() => String, { nullable: true })
+  socketId?: string; // Optionnel, utilisé pour les notifications en temps réel
 }

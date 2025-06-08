@@ -8,6 +8,7 @@ import { HealthModule } from './modules/health/health.module';
 import { BullMqModule } from './modules/bullmq/bullmq.module';
 import { ConversationModule } from './modules/conversation/conversation.module';
 import { MessageModule } from './modules/message/message.module';
+import { WebsocketModule } from './modules/websocket/websocket.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MessageModule } from './modules/message/message.module';
     HealthModule,
     ConversationModule,
     MessageModule,
+    WebsocketModule,
   ],
   providers: [AppResolver, AppService],
 })

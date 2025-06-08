@@ -23,8 +23,6 @@ export class ConversationResolver {
     @CurrentUser() user: { id: string },
     @Args() conversationPaginationArgs: ConversationPaginationArgs,
   ) {
-    console.log('Fetching conversations for user:', user.id);
-    console.log('Pagination args:', conversationPaginationArgs);
     return await this.conversationService.paginateUserConversations(
       user.id,
       conversationPaginationArgs,
