@@ -7,4 +7,6 @@ export class MessageConsumerJobDto {
   senderId: string;
   @IsString()
   conversationId: string;
+  @IsString()
+  socketId: string;
 }

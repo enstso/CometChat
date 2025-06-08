@@ -34,7 +34,7 @@ export class MessageService {
     const sliced = hasPreviousPage ? messages.slice(0, limit) : messages;
 
     const edges = sliced.map((message) => ({
-      cursor: message.id, 
+      cursor: message.id,
       node: message,
     }));
 

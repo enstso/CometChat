@@ -3,13 +3,12 @@ import { ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 
 const httpLink = createHttpLink({
-  uri: import.meta.env.VITE_API_URL,
+  uri: import.meta.env.VITE_API_GRAPHQL_URL,
 });
 
 export const createApolloClient = (getIdTokenClaims: () => Promise<string>) => {
   const authLink = setContext(async (_, { headers }) => {
     const token = await getIdTokenClaims();
-    console.log("Token:", token);
     return {
       headers: {
         ...headers,

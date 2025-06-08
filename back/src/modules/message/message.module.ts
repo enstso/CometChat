@@ -3,6 +3,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { MessageResolver } from './message.resolver';
 import { MessageService } from './message.service';
 import { MessageConsumer } from './message.consumer';
+import { WebsocketModule } from '../websocket/websocket.module';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { MessageConsumer } from './message.consumer';
     BullModule.registerQueue({
       name: 'message-queue',
     }),
+    WebsocketModule,
   ],
   providers: [MessageResolver, MessageService, MessageConsumer],
 })

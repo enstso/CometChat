@@ -1,7 +1,7 @@
 import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { MessageService } from './message.service';
 import { SendMessageInput } from './dto/send-message.input';
-import { Message } from './message.model';
+import { Message } from './models/message.model';
 import { MessageConnection } from './dto/message-relay';
 import { MessagePaginationArgs } from './dto/message.args';
 import { SendMessageResponse } from './dto/send-message.output';

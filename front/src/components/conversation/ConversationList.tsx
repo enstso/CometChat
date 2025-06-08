@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import Spinner from "../ui/Spinner";
 import { useApolloClient } from "@apollo/client";
 import {
-  SEARCH_USERS,
-  CREATE_CONVERSATION,
   GET_USER_CONVERSATIONS,
+  CREATE_CONVERSATION,
 } from "../../services/requestsGql";
-import Input from "../ui/Input";
-import ConversationItem from "./ConversationItem";
-import SearchUserItem from "../chat/SearchUserItem";
 import { useAuth0 } from "@auth0/auth0-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { socket } from "../../services/webSocket";
+
+import ConversationSearch from "./ConversationSearch";
+import ConversationListItems from "./ConversationListItems";
+import ConversationLoader from "./ConversationLoader";
 
 interface Conversation {
   id: string;
@@ -33,10 +32,10 @@ export default function ConversationList({
 }: ConversationListProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [conversationLoading, setConversationLoading] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState<Record<string, boolean>>({});
   const conversationContainer = useRef<HTMLDivElement>(null);
-  const [search, setSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [creating, setCreating] = useState(false);
+  const [resetSearchTrigger, setResetSearchTrigger] = useState(0);
 
   const client = useApolloClient();
   const { user } = useAuth0();
@@ -87,33 +86,10 @@ export default function ConversationList({
     fetchConversations();
   }, [currentUserId, client]);
 
-  // Debounced search for users
-  useEffect(() => {
-    if (search.length === 0) {
-      setSearchResults([]);
-      return;
-    }
-
-    const handler = setTimeout(async () => {
-      try {
-        const { data } = await client.query({
-          query: SEARCH_USERS,
-          variables: { query: search },
-          fetchPolicy: "no-cache",
-        });
-        setSearchResults(data.searchUsers);
-      } catch (error) {
-        console.error("Error searching users:", error);
-      }
-    }, 300);
-
-    return () => clearTimeout(handler);
-  }, [search, client]);
-
   const handleScrollConversation = () => {
     const el = conversationContainer.current;
     if (el && el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
-      // Future pagination logic here
+      // Pagination futur
     }
   };
 
@@ -148,13 +124,49 @@ export default function ConversationList({
       ]);
       onSelect(newConversation.id);
       onSelectToSetTitle(newConversation.title);
-      setSearch("");
-      setSearchResults([]);
+      setResetSearchTrigger((v) => v + 1); // Reset search input & results
     } catch (err) {
       console.error("Error creating conversation:", err);
     } finally {
       setCreating(false);
     }
+  };
+
+  // Setup socket listeners
+  useEffect(() => {
+    socket.connect();
+
+    const handleNewMessage = (data: { conversationId: string; content: string }) => {
+      if (data.conversationId !== selectedConversation) {
+        setUnreadMessages((prev) => ({
+          ...prev,
+          [data.conversationId]: true,
+        }));
+      }
+
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.id === data.conversationId ? { ...conv, lastMessage: data.content } : conv
+        )
+      );
+    };
+
+    socket.on("newMessage", handleNewMessage);
+
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+      // Ne pas disconnecter le socket ici
+    };
+  }, [selectedConversation]);
+
+  const handleSelectConversation = (id: string, title: string) => {
+    onSelect(id);
+    onSelectToSetTitle(title);
+    setUnreadMessages((prev) => {
+      const updated = { ...prev };
+      delete updated[id];
+      return updated;
+    });
   };
 
   return (
@@ -163,74 +175,21 @@ export default function ConversationList({
       onScroll={handleScrollConversation}
       className="w-full sm:w-1/3 md:w-1/4 border-r border-gray-300 overflow-y-auto h-full"
     >
-      <div className="p-4 border-b sticky top-0 bg-white z-20">
-        <p className="font-bold text-xl text-indigo-700">Conversations</p>
-        <div className="mt-3">
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search users..."
-            className="w-full"
-          />
-        </div>
+      <ConversationSearch
+        onCreateConversation={handleCreateConversation}
+        creating={creating}
+        resetSearchTrigger={resetSearchTrigger}
+      />
 
-        <AnimatePresence>
-          {searchResults.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-3 space-y-2 max-h-60 overflow-auto"
-            >
-              {searchResults.map((user) => (
-                <SearchUserItem
-                  key={user.id}
-                  user={user}
-                  onCreate={handleCreateConversation}
-                  disabled={creating}
-                />
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      <ConversationListItems
+        conversations={conversations}
+        selectedConversation={selectedConversation}
+        unreadMessages={unreadMessages}
+        onSelectConversation={handleSelectConversation}
+        loading={conversationLoading}
+      />
 
-      <div className="divide-y divide-gray-200">
-        <AnimatePresence>
-          {conversations.length === 0 && !conversationLoading && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="p-4 text-center text-gray-500"
-            >
-              No conversations yet
-            </motion.p>
-          )}
-
-          {conversations.map((conv) => (
-            <motion.div
-              key={conv.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              layout
-            >
-              <ConversationItem
-                conversation={conv}
-                selected={selectedConversation === conv.id}
-                onSelect={onSelect}
-                onSelectToSetTitle={onSelectToSetTitle}
-              />
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      {conversationLoading && (
-        <div className="p-4 flex justify-center">
-          <Spinner />
-        </div>
-      )}
+      {conversationLoading && <ConversationLoader />}
     </div>
   );
 }
