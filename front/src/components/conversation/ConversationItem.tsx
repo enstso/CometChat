@@ -1,12 +1,14 @@
 import { cn } from "../../lib/utils";
 import { motion } from "framer-motion";
+import { socket } from "../../services/webSocket";
+import { useEffect, useState } from "react";
 
 export default function ConversationItem({
   conversation,
   selected,
   onSelect,
   onSelectToSetTitle,
-  hasUnread = false, // Ajout de la prop hasUnread
+  hasUnread = false,
 }: {
   onSelectToSetTitle: (title: string) => void;
   conversation: {
@@ -19,15 +21,35 @@ export default function ConversationItem({
   };
   selected: boolean;
   onSelect: (id: string) => void;
-  hasUnread?: boolean; // Optional prop
+  hasUnread?: boolean;
 }) {
-  console.log("ConversationItem rendered", conversation);
+  const [lastMessage, setLastMessage] = useState(conversation.lastMessage);
+  const [lastMessageSender, setLastMessageSender] = useState(
+    conversation.lastMessageSender
+  );
+
+  useEffect(() => {
+    const handleNewMessage = (message: {
+      conversationId: string;
+      content: string;
+      sender: { username: string };
+      createdAt: string;
+    }) => {
+      if (message.conversationId === conversation.id) {        
+        setLastMessage(message.content);
+        setLastMessageSender(message.sender.username);
+      }
+    };
+    socket.off("newMessage", handleNewMessage);
+    socket.on("newMessage", handleNewMessage);
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
+  }, [conversation.id]);
 
   const formatDate = (isoString: string): string => {
     const date = new Date(isoString);
-
     if (isNaN(date.getTime())) return "";
-
     return date.toLocaleString("fr-FR", {
       day: "2-digit",
       month: "2-digit",
@@ -63,10 +85,8 @@ export default function ConversationItem({
       </div>
       <p className="text-xs text-gray-600 truncate">{conversation.user}</p>
       <p className="text-sm text-gray-500 truncate">
-        {conversation.lastMessage
-          ? `${conversation.lastMessageSender ?? "Inconnu"}: ${
-              conversation.lastMessage
-            }`
+        {lastMessage
+          ? `${lastMessageSender ?? "Inconnu"}: ${lastMessage}`
           : "No messages yet"}
       </p>
       <p className="text-xs text-gray-400 mt-1">
