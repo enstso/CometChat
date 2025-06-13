@@ -5,12 +5,22 @@ import Navbar from "../components/ui/Navbar";
 import NewMessageToast from "../components/toast/NewMessageToast";
 
 export default function ChatView() {
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<
+    string | null
+  >(null);
   const [title, setTitle] = useState<string>("Chat");
+  const [unreadMessages, setUnreadMessages] = useState<Record<string, boolean>>(
+    {}
+  );
 
   const handleOpenConversation = (conversationId: string) => {
     console.log("Opening conversation:", conversationId);
     setSelectedConversation(conversationId);
+    setUnreadMessages((prev) => {
+      const updated = { ...prev };
+      delete updated[conversationId];
+      return updated;
+    });
   };
 
   return (
@@ -21,11 +31,13 @@ export default function ChatView() {
           selectedConversation={selectedConversation}
           onSelect={setSelectedConversation}
           onSelectToSetTitle={setTitle}
+          unreadMessages={unreadMessages}
+          setUnreadMessages={setUnreadMessages}
+
         />
         <ChatWindow selectedConversation={selectedConversation} title={title} />
       </div>
 
-  
       {/* Toast Notifications */}
       <NewMessageToast onClickConversation={handleOpenConversation} />
     </div>

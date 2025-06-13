@@ -9,7 +9,7 @@ type ToastMessage = {
   content: string;
   sender: {
     id: string;
-    username: string;  // doit correspondre au backend
+    username: string; // doit correspondre au backend
   };
   createdAt: string;
 };
@@ -23,23 +23,22 @@ export default function NewMessageToast({
   const { user } = useAuth0();
 
   useEffect(() => {
-  const handleNewMessage = (message: ToastMessage) => {
-    if (user && message.sender.id === user.sub) return;
+    const handleNewMessage = (message: ToastMessage) => {
+      if (user && message.sender.id === user.sub) return;
 
-    setMessages((prev) => [...prev, message]);
+      setMessages((prev) => [...prev, message]);
 
-    setTimeout(() => {
-      setMessages((prev) => prev.filter((m) => m !== message));
-    }, 5000);
-  };
+      setTimeout(() => {
+        setMessages((prev) => prev.filter((m) => m !== message));
+      }, 5000);
+    };
 
-  socket.on("newMessage", handleNewMessage);
+    socket.on("newMessage", handleNewMessage);
 
-  return () => {
-    socket.off("newMessage", handleNewMessage);
-  };
-}, [user]);
-
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
+  }, [user]);
 
   return (
     <div className="fixed bottom-4 right-4 z-50 space-y-2 w-full max-w-sm">
@@ -65,7 +64,9 @@ export default function NewMessageToast({
                 <p className="text-sm text-gray-800 font-semibold">
                   Nouveau message de {msg.sender.username}
                 </p>
-                <p className="text-sm text-gray-600 line-clamp-2">{msg.content}</p>
+                <p className="text-sm text-gray-600 line-clamp-2">
+                  {msg.content}
+                </p>
               </div>
               <button
                 onClick={(e) => {

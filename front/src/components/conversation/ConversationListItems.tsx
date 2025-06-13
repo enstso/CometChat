@@ -49,6 +49,7 @@ export default function ConversationListItems({
               conversation={conv}
               selected={selectedConversation == conv.id}
               onSelect={() => onSelectConversation(conv.id, conv.title)}
+              onSelectToSetTitle={}
               hasUnread={conv.id != selectedConversation && !!unreadMessages[conv.id]}
             />
           </motion.div>

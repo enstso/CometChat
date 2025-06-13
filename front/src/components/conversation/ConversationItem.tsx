@@ -6,19 +6,20 @@ export default function ConversationItem({
   selected,
   onSelect,
   onSelectToSetTitle,
-  hasUnread = false,   // Ajout de la prop hasUnread
+  hasUnread = false, // Ajout de la prop hasUnread
 }: {
   onSelectToSetTitle: (title: string) => void;
   conversation: {
     id: string;
     user: string;
     lastMessage?: string;
+    lastMessageSender?: string;
     title: string;
     createdAt: string;
   };
   selected: boolean;
   onSelect: (id: string) => void;
-  hasUnread?: boolean;  // Optional prop
+  hasUnread?: boolean; // Optional prop
 }) {
   console.log("ConversationItem rendered", conversation);
 
@@ -53,14 +54,24 @@ export default function ConversationItem({
       )}
     >
       <div className="flex justify-between items-center">
-        <p className="text-sm text-indigo-800 font-semibold truncate">{conversation.title}</p>
+        <p className="text-sm text-indigo-800 font-semibold truncate">
+          {conversation.title}
+        </p>
         {hasUnread && (
-          <span  className="ml-2 w-2 h-2 rounded-full bg-red-500 animate-ping absolute right-4 top-4" />
+          <span className="ml-2 w-2 h-2 rounded-full bg-red-500 animate-ping absolute right-4 top-4" />
         )}
       </div>
       <p className="text-xs text-gray-600 truncate">{conversation.user}</p>
-      <p className="text-sm text-gray-500 truncate">{conversation.lastMessage || "No messages yet"}</p>
-      <p className="text-xs text-gray-400 mt-1">{formatDate(conversation.createdAt)}</p>
+      <p className="text-sm text-gray-500 truncate">
+        {conversation.lastMessage
+          ? `${conversation.lastMessageSender ?? "Inconnu"}: ${
+              conversation.lastMessage
+            }`
+          : "No messages yet"}
+      </p>
+      <p className="text-xs text-gray-400 mt-1">
+        {formatDate(conversation.createdAt)}
+      </p>
     </motion.div>
   );
 }
