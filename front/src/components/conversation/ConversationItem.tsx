@@ -35,15 +35,17 @@ export default function ConversationItem({
       sender: { username: string };
       createdAt: string;
     }) => {
-      if (message.conversationId === conversation.id) {        
+
+      if (message.conversationId === conversation.id) {
         setLastMessage(message.content);
         setLastMessageSender(message.sender.username);
       }
     };
-    socket.off("newMessage", handleNewMessage);
-    socket.on("newMessage", handleNewMessage);
+
+    socket.on("getLastMessages", handleNewMessage);
+
     return () => {
-      socket.off("newMessage", handleNewMessage);
+      socket.off("getLastMessages", handleNewMessage);
     };
   }, [conversation.id]);
 

@@ -47,6 +47,16 @@ export class MessageConsumer extends WorkerHost {
         createdAt: savedMessage.createdAt,
       });
 
+      this.webSocketService.server.emit('getLastMessages', {
+        conversationId,
+        content: savedMessage.content,
+        sender: {
+          id: savedMessage.sender.id,
+          username: savedMessage.sender.username,
+        },
+        createdAt: savedMessage.createdAt,
+      });
+
       console.log(`📨 Message saved and emitted: ${content}`);
     }
   }
