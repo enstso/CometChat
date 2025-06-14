@@ -65,7 +65,6 @@ export default function ConversationList({
             const otherParticipant = participants.find(
               (p: any) => p.user.auth0Id !== currentUserId
             );
-            {console.log("dsdds",data.getUserConversations.edges)}
             return {
               id: edge.node.id,
               title: edge.node.title || "Untitled Conversation",
@@ -180,7 +179,6 @@ export default function ConversationList({
       sender:any;
     }) => {
       if (data.conversationId != selectedConversation) {
-        console.log(unreadMessages);
         // Marque la conversation comme non lue
         setUnreadMessages((prev) => ({
           ...prev,
