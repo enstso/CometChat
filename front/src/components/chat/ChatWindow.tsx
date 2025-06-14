@@ -233,12 +233,6 @@ export default function ChatWindow({
     };
   }, [selectedConversation, currentUser]);
 
-  useEffect(() => {
-    if (selectedConversation) {
-      console.log("Joining conversation:", selectedConversation);
-    }
-  }, [selectedConversation]);
-
   const handleNewMessageClick = () => {
     socket.emit("join", selectedConversation);
     scrollToBottom();
@@ -271,7 +265,7 @@ export default function ChatWindow({
         )}
 
         {messages.map((msg) => (
-          <Message key={msg.id} message={msg} />
+          <Message key={msg.createdAt} message={msg} />
         ))}
       </div>
 

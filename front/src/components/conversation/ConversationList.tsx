@@ -17,7 +17,7 @@ interface Conversation {
   id: string;
   user: string;
   lastMessage?: string;
-  lastMessageSender?: string
+  lastMessageSender?: string;
   title: string;
   createdAt: string;
 }
@@ -27,7 +27,9 @@ interface ConversationListProps {
   onSelectToSetTitle: (title: string) => void;
   onSelect: (id: string) => any;
   unreadMessages: Record<string, boolean>;
-  setUnreadMessages: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  setUnreadMessages: React.Dispatch<
+    React.SetStateAction<Record<string, boolean>>
+  >;
 }
 
 export default function ConversationList({
@@ -35,7 +37,7 @@ export default function ConversationList({
   onSelectToSetTitle,
   onSelect,
   unreadMessages,
-  setUnreadMessages
+  setUnreadMessages,
 }: ConversationListProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [conversationLoading, setConversationLoading] = useState(false);
@@ -43,6 +45,8 @@ export default function ConversationList({
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [creating, setCreating] = useState(false);
+
+  const selectedConversationRef = useRef<string | null>(null);
 
   const client = useApolloClient();
   const { user } = useAuth0();
@@ -73,9 +77,10 @@ export default function ConversationList({
                 edge.node.messages && edge.node.messages.length > 0
                   ? edge.node.messages[0].content
                   : "New conversation",
-              lastMessageSender:                 
-              edge.node.messages && edge.node.messages.length > 0
-              ? edge.node.messages[0].sender.username : "",
+              lastMessageSender:
+                edge.node.messages && edge.node.messages.length > 0
+                  ? edge.node.messages[0].sender.username
+                  : "",
               createdAt:
                 edge.node.messages && edge.node.messages.length > 0
                   ? edge.node.messages[0].createdAt
@@ -152,7 +157,7 @@ export default function ConversationList({
             (p: any) => p.user.id === userId
           )?.user.username,
           lastMessage: "New conversation",
-          lastMessageSender:"",
+          lastMessageSender: "",
           title: newConversation.title,
           createdAt: new Date().toISOString(),
         },
@@ -169,43 +174,44 @@ export default function ConversationList({
     }
   };
 
-  // 🔌 Setup socket listeners
+  // Dans l'effet de socket :
   useEffect(() => {
     socket.connect();
 
     const handleNewMessage = (data: {
       conversationId: string;
       content: string;
-      sender:any;
+      sender: any;
     }) => {
-      if (data.conversationId != selectedConversation) {
-        // Marque la conversation comme non lue
+      if (data.conversationId !== selectedConversationRef.current) {
         setUnreadMessages((prev) => ({
           ...prev,
           [data.conversationId]: true,
         }));
       }
-      // Mets à jour le dernier message dans la liste des conversations
+
       setConversations((prev) =>
         prev.map((conv) =>
           conv.id === data.conversationId
-            ? { ...conv, lastMessage: data.content, lastMessageSender:data.sender.username }
+            ? {
+                ...conv,
+                lastMessage: data.content,
+                lastMessageSender: data.sender.username,
+              }
             : conv
         )
       );
     };
 
     socket.on("newMessage", handleNewMessage);
-
     return () => {
       socket.off("newMessage", handleNewMessage);
-      // ❌ Ne disconnecte pas ici !
     };
-  }, []); // ← socket listener est fixé une seule fois au mount
-
+  }, []);
   const handleSelectConversation = (id: string, title: string) => {
     onSelect(id);
     onSelectToSetTitle(title);
+    selectedConversationRef.current = id; // Met à jour la ref
     setUnreadMessages((prev) => {
       const updated = { ...prev };
       delete updated[id];

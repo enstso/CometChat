@@ -21,6 +21,7 @@ export default function ChatView() {
       delete updated[conversationId];
       return updated;
     });
+    console.log("unRead1",unreadMessages);
   };
 
   return (
