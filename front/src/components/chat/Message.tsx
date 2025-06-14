@@ -1,5 +1,5 @@
 import React from "react";
-
+import { Message } from "../../gql/graphql";
 type MessageProps = {
   message: {
     fromMe: boolean;
@@ -8,7 +8,6 @@ type MessageProps = {
     createdAt: string;
   };
 };
-
 const formatDate = (isoString: string): string => {
   const date = new Date(isoString);
 
