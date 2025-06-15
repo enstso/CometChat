@@ -1,5 +1,4 @@
 /* eslint-disable */
-import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -23,15 +22,37 @@ export type Conversation = {
   id: Scalars['ID']['output'];
   messages: Array<Message>;
   participants: Array<ConversationParticipant>;
+  title: Scalars['String']['output'];
+};
+
+export type ConversationConnection = {
+  __typename?: 'ConversationConnection';
+  edges: Array<ConversationEdge>;
+  pageInfo: ConversationPageInfo;
+};
+
+export type ConversationEdge = {
+  __typename?: 'ConversationEdge';
+  cursor: Scalars['String']['output'];
+  node: Conversation;
+};
+
+export type ConversationPageInfo = {
+  __typename?: 'ConversationPageInfo';
+  endCursor?: Maybe<Scalars['String']['output']>;
+  hasNextPage: Scalars['Boolean']['output'];
+  hasPreviousPage: Scalars['Boolean']['output'];
+  startCursor?: Maybe<Scalars['String']['output']>;
 };
 
 export type ConversationParticipant = {
   __typename?: 'ConversationParticipant';
-  id: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
   user: User;
 };
 
 export type CreateConversationInput = {
+  title: Scalars['String']['input'];
   userId1: Scalars['ID']['input'];
   userId2: Scalars['ID']['input'];
 };
@@ -49,10 +70,30 @@ export type Message = {
   sender: User;
 };
 
+export type MessageConnection = {
+  __typename?: 'MessageConnection';
+  edges: Array<MessageEdge>;
+  pageInfo: MessagePageInfo;
+};
+
+export type MessageEdge = {
+  __typename?: 'MessageEdge';
+  cursor: Scalars['String']['output'];
+  node: Message;
+};
+
+export type MessagePageInfo = {
+  __typename?: 'MessagePageInfo';
+  endCursor?: Maybe<Scalars['String']['output']>;
+  hasNextPage: Scalars['Boolean']['output'];
+  hasPreviousPage: Scalars['Boolean']['output'];
+  startCursor?: Maybe<Scalars['String']['output']>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   createConversation: Conversation;
-  sendMessage: Scalars['String']['output'];
+  sendMessage: SendMessageResponse;
 };
 
 
@@ -65,43 +106,51 @@ export type MutationSendMessageArgs = {
   sendMessageInput: SendMessageInput;
 };
 
-export type PaginatedConversations = {
-  __typename?: 'PaginatedConversations';
-  conversations: Array<Conversation>;
-  nextCursor?: Maybe<Scalars['String']['output']>;
-};
-
 export type Query = {
   __typename?: 'Query';
-  getUserConversations: PaginatedConversations;
+  getMessages: MessageConnection;
+  getUserConversations: ConversationConnection;
   healthCheck: HealthCheckResponse;
   hello: Scalars['String']['output'];
   me: User;
+  searchUsers: Array<User>;
+};
+
+
+export type QueryGetMessagesArgs = {
+  conversationId: Scalars['ID']['input'];
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  limit?: Scalars['Int']['input'];
 };
 
 
 export type QueryGetUserConversationsArgs = {
   cursor?: InputMaybe<Scalars['String']['input']>;
-  take?: Scalars['Int']['input'];
+  limit?: Scalars['Int']['input'];
+};
+
+
+export type QuerySearchUsersArgs = {
+  query: Scalars['String']['input'];
 };
 
 export type SendMessageInput = {
   content: Scalars['String']['input'];
   conversationId: Scalars['ID']['input'];
   senderId: Scalars['ID']['input'];
+  socketId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SendMessageResponse = {
+  __typename?: 'SendMessageResponse';
+  jobId?: Maybe<Scalars['ID']['output']>;
+  result: Scalars['String']['output'];
 };
 
 export type User = {
   __typename?: 'User';
+  auth0Id: Scalars['String']['output'];
   email?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   username: Scalars['String']['output'];
 };
-
-export type MeQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', id: string, email?: string | null, username: string } };
-
-
-export const MeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Me"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"me"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}}]}}]} as unknown as DocumentNode<MeQuery, MeQueryVariables>;

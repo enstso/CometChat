@@ -1,5 +1,4 @@
 // src/views/Home.tsx
-import React from "react";
 import { motion } from "framer-motion";
 import Navbar from "../components/ui/Navbar";
 import Button from "../components/ui/Button";
@@ -35,7 +34,6 @@ export default function Home() {
           className="flex flex-col sm:flex-row gap-4"
         >
           <Button
-            size="lg"
             className="bg-purple-600 hover:bg-purple-700 text-white font-semibold"
             onClick={() => window.location.assign("/register")}
           >
@@ -43,7 +41,6 @@ export default function Home() {
           </Button>
 
           <Button
-            size="lg"
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
             onClick={() => window.location.assign("/login")}
           >

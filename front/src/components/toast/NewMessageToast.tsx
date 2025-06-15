@@ -3,43 +3,33 @@ import { socket } from "../../services/webSocket";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useAuth0 } from "@auth0/auth0-react";
-
-type ToastMessage = {
-  conversationId: string;
-  content: string;
-  sender: {
-    id: string;
-    username: string;  // doit correspondre au backend
-  };
-  createdAt: string;
-};
+import type { MessageType } from "../../types/message";
 
 export default function NewMessageToast({
   onClickConversation,
 }: {
   onClickConversation?: (conversationId: string) => void;
 }) {
-  const [messages, setMessages] = useState<ToastMessage[]>([]);
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const { user } = useAuth0();
 
   useEffect(() => {
-  const handleNewMessage = (message: ToastMessage) => {
-    if (user && message.sender.id === user.sub) return;
+    const handleNewMessage = (message: MessageType) => {
+      if (user && message.sender.id === user.sub) return;
 
-    setMessages((prev) => [...prev, message]);
+      setMessages((prev) => [...prev, message]);
 
-    setTimeout(() => {
-      setMessages((prev) => prev.filter((m) => m !== message));
-    }, 5000);
-  };
+      setTimeout(() => {
+        setMessages((prev) => prev.filter((m) => m !== message));
+      }, 5000);
+    };
 
-  socket.on("newMessage", handleNewMessage);
+    socket.on("newMessage", handleNewMessage);
 
-  return () => {
-    socket.off("newMessage", handleNewMessage);
-  };
-}, [user]);
-
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
+  }, [user]);
 
   return (
     <div className="fixed bottom-4 right-4 z-50 space-y-2 w-full max-w-sm">
@@ -53,7 +43,7 @@ export default function NewMessageToast({
             layout
             className="bg-white rounded-2xl shadow-lg border border-indigo-200 overflow-hidden cursor-pointer"
             onClick={() => {
-              onClickConversation?.(msg.conversationId);
+              onClickConversation?.(msg.conversationId ?? '');
               setMessages((prev) => prev.filter((m) => m !== msg));
             }}
           >
@@ -65,7 +55,9 @@ export default function NewMessageToast({
                 <p className="text-sm text-gray-800 font-semibold">
                   Nouveau message de {msg.sender.username}
                 </p>
-                <p className="text-sm text-gray-600 line-clamp-2">{msg.content}</p>
+                <p className="text-sm text-gray-600 line-clamp-2">
+                  {msg.content}
+                </p>
               </div>
               <button
                 onClick={(e) => {

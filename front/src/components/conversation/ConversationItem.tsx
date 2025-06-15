@@ -1,32 +1,42 @@
-import { cn } from "../../lib/utils";
+import { cn } from "../../utils/cn";
 import { motion } from "framer-motion";
+import { socket } from "../../services/webSocket";
+import { useEffect, useState } from "react";
+import type { ConversationItemProps } from "../../types/conversation";
+import type { MessageType } from "../../types/message";
 
 export default function ConversationItem({
   conversation,
   selected,
   onSelect,
   onSelectToSetTitle,
-  hasUnread = false,   // Ajout de la prop hasUnread
-}: {
-  onSelectToSetTitle: (title: string) => void;
-  conversation: {
-    id: string;
-    user: string;
-    lastMessage?: string;
-    title: string;
-    createdAt: string;
-  };
-  selected: boolean;
-  onSelect: (id: string) => void;
-  hasUnread?: boolean;  // Optional prop
-}) {
-  console.log("ConversationItem rendered", conversation);
+  hasUnread = false,
+}: ConversationItemProps) {
+  const [lastMessage, setLastMessage] = useState<string>(
+    conversation.lastMessage
+  );
+  const [lastMessageSender, setLastMessageSender] = useState<string>(
+    conversation.lastMessageSender
+  );
+
+  useEffect(() => {
+    const handleNewMessage = (message: MessageType) => {
+      if (message.conversationId === conversation.id) {
+        setLastMessage(message.content);
+        setLastMessageSender(message.sender.username);
+      }
+    };
+
+    socket.on("getLastMessages", handleNewMessage);
+
+    return () => {
+      socket.off("getLastMessages", handleNewMessage);
+    };
+  }, [conversation.id]);
 
   const formatDate = (isoString: string): string => {
     const date = new Date(isoString);
-
     if (isNaN(date.getTime())) return "";
-
     return date.toLocaleString("fr-FR", {
       day: "2-digit",
       month: "2-digit",
@@ -53,14 +63,22 @@ export default function ConversationItem({
       )}
     >
       <div className="flex justify-between items-center">
-        <p className="text-sm text-indigo-800 font-semibold truncate">{conversation.title}</p>
+        <p className="text-sm text-indigo-800 font-semibold truncate">
+          {conversation.title}
+        </p>
         {hasUnread && (
-          <span  className="ml-2 w-2 h-2 rounded-full bg-red-500 animate-ping absolute right-4 top-4" />
+          <span className="ml-2 w-2 h-2 rounded-full bg-red-500 animate-ping absolute right-4 top-4" />
         )}
       </div>
       <p className="text-xs text-gray-600 truncate">{conversation.user}</p>
-      <p className="text-sm text-gray-500 truncate">{conversation.lastMessage || "No messages yet"}</p>
-      <p className="text-xs text-gray-400 mt-1">{formatDate(conversation.createdAt)}</p>
+      <p className="text-sm text-gray-500 truncate">
+        {lastMessage
+          ? `${lastMessageSender ?? "Inconnu"}: ${lastMessage}`
+          : "No messages yet"}
+      </p>
+      <p className="text-xs text-gray-400 mt-1">
+        {formatDate(conversation.createdAt)}
+      </p>
     </motion.div>
   );
 }

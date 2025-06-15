@@ -1,22 +1,13 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import Spinner from "../ui/Spinner";
 import Message from "./Message";
+import type { MessageListProps } from "../../types/message";
 
-type MessageType = {
-  id: string;
-  content: string;
-  fromMe: boolean;
-  createdAt: string;
-  sender: any;
-};
-
-type Props = {
-  messages: MessageType[];
-  loading: boolean;
-  onScrollNearTop: () => void;
-};
-
-const MessagesList = ({ messages, loading, onScrollNearTop }: Props) => {
+const MessagesList = ({
+  messages,
+  loading,
+  onScrollNearTop,
+}: MessageListProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -38,7 +29,9 @@ const MessagesList = ({ messages, loading, onScrollNearTop }: Props) => {
         </div>
       )}
       {!loading && messages.length === 0 && (
-        <p className="text-center text-gray-400 mt-4">No messages yet. Start the conversation!</p>
+        <p className="text-center text-gray-400 mt-4">
+          No messages yet. Start the conversation!
+        </p>
       )}
       {messages.map((msg) => (
         <Message key={msg.id} message={msg} />
