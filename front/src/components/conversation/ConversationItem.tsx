@@ -1,7 +1,9 @@
-import { cn } from "../../lib/utils";
+import { cn } from "../../utils/cn";
 import { motion } from "framer-motion";
 import { socket } from "../../services/webSocket";
 import { useEffect, useState } from "react";
+import type { ConversationItemProps } from "../../types/conversation";
+import type { MessageType } from "../../types/message";
 
 export default function ConversationItem({
   conversation,
@@ -9,33 +11,16 @@ export default function ConversationItem({
   onSelect,
   onSelectToSetTitle,
   hasUnread = false,
-}: {
-  onSelectToSetTitle: (title: string) => void;
-  conversation: {
-    id: string;
-    user: string;
-    lastMessage?: string;
-    lastMessageSender?: string;
-    title: string;
-    createdAt: string;
-  };
-  selected: boolean;
-  onSelect: (id: string) => void;
-  hasUnread?: boolean;
-}) {
-  const [lastMessage, setLastMessage] = useState(conversation.lastMessage);
-  const [lastMessageSender, setLastMessageSender] = useState(
+}: ConversationItemProps) {
+  const [lastMessage, setLastMessage] = useState<string>(
+    conversation.lastMessage
+  );
+  const [lastMessageSender, setLastMessageSender] = useState<string>(
     conversation.lastMessageSender
   );
 
   useEffect(() => {
-    const handleNewMessage = (message: {
-      conversationId: string;
-      content: string;
-      sender: { username: string };
-      createdAt: string;
-    }) => {
-
+    const handleNewMessage = (message: MessageType) => {
       if (message.conversationId === conversation.id) {
         setLastMessage(message.content);
         setLastMessageSender(message.sender.username);

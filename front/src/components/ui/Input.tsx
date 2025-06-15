@@ -1,11 +1,11 @@
-import type { InputHTMLAttributes } from "react";
-import { cn } from "../../lib/utils";
+import { cn } from "../../utils/cn";
 import { motion } from "framer-motion";
+import type { MotionInputProps } from "../../types/ui/input";
 
 export default function Input({
   className,
   ...props
-}: InputHTMLAttributes<HTMLInputElement>) {
+}: MotionInputProps) {
   return (
     <motion.input
       initial={{ opacity: 0, y: 10 }}

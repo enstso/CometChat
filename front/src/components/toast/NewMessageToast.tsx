@@ -3,27 +3,18 @@ import { socket } from "../../services/webSocket";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useAuth0 } from "@auth0/auth0-react";
-
-type ToastMessage = {
-  conversationId: string;
-  content: string;
-  sender: {
-    id: string;
-    username: string; // doit correspondre au backend
-  };
-  createdAt: string;
-};
+import type { MessageType } from "../../types/message";
 
 export default function NewMessageToast({
   onClickConversation,
 }: {
   onClickConversation?: (conversationId: string) => void;
 }) {
-  const [messages, setMessages] = useState<ToastMessage[]>([]);
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const { user } = useAuth0();
 
   useEffect(() => {
-    const handleNewMessage = (message: ToastMessage) => {
+    const handleNewMessage = (message: MessageType) => {
       if (user && message.sender.id === user.sub) return;
 
       setMessages((prev) => [...prev, message]);
@@ -52,7 +43,7 @@ export default function NewMessageToast({
             layout
             className="bg-white rounded-2xl shadow-lg border border-indigo-200 overflow-hidden cursor-pointer"
             onClick={() => {
-              onClickConversation?.(msg.conversationId);
+              onClickConversation?.(msg.conversationId ?? '');
               setMessages((prev) => prev.filter((m) => m !== msg));
             }}
           >

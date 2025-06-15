@@ -3,11 +3,17 @@ import { ApolloProvider } from "@apollo/client";
 import { useAuth0 } from "@auth0/auth0-react";
 import { createApolloClient } from "../../services/apolloClient";
 
-export default  function ApolloWrapper({ children }: { children: React.ReactNode }) {
-  const {  getIdTokenClaims,user } = useAuth0();
-  console.log(user);
+export default function ApolloWrapper({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { getIdTokenClaims } = useAuth0();
   const client = useMemo(
-    () => createApolloClient(() => getIdTokenClaims().then(claims => claims?.__raw || "")),
+    () =>
+      createApolloClient(() =>
+        getIdTokenClaims().then((claims) => claims?.__raw || "")
+      ),
     [getIdTokenClaims]
   );
 

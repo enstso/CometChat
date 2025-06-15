@@ -8,29 +8,15 @@ import {
 } from "../../services/requestsGql";
 import Input from "../ui/Input";
 import ConversationItem from "./ConversationItem";
-import SearchUserItem from "../chat/SearchUserItem";
+import SearchUserItem from "../ui/SearchBar";
 import { useAuth0 } from "@auth0/auth0-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { socket } from "../../services/webSocket";
-
-interface Conversation {
-  id: string;
-  user: string;
-  lastMessage?: string;
-  lastMessageSender?: string;
-  title: string;
-  createdAt: string;
-}
-
-interface ConversationListProps {
-  selectedConversation: number | string | null;
-  onSelectToSetTitle: (title: string) => void;
-  onSelect: (id: string) => any;
-  unreadMessages: Record<string, boolean>;
-  setUnreadMessages: React.Dispatch<
-    React.SetStateAction<Record<string, boolean>>
-  >;
-}
+import type {
+  ConversationListProps,
+  ConversationType,
+} from "../../types/conversation";
+import type { ConversationEdge, User } from "../../gql/graphql";
 
 export default function ConversationList({
   selectedConversation,
@@ -39,11 +25,11 @@ export default function ConversationList({
   unreadMessages,
   setUnreadMessages,
 }: ConversationListProps) {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<ConversationType[]>([]);
   const [conversationLoading, setConversationLoading] = useState(false);
   const conversationContainer = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<User[]>([]);
   const [creating, setCreating] = useState(false);
 
   const selectedConversationRef = useRef<string | null>(null);
@@ -63,11 +49,11 @@ export default function ConversationList({
           fetchPolicy: "no-cache",
         });
 
-        const fetchedConversations = data.getUserConversations.edges.map(
-          (edge: any) => {
+        const fetchedConversations: ConversationType[] =
+          data.getUserConversations.edges.map((edge: ConversationEdge) => {
             const participants = edge.node.participants || [];
             const otherParticipant = participants.find(
-              (p: any) => p.user.auth0Id !== currentUserId
+              (p: { user: User }) => p.user.auth0Id !== currentUserId
             );
             return {
               id: edge.node.id,
@@ -86,8 +72,7 @@ export default function ConversationList({
                   ? edge.node.messages[0].createdAt
                   : "",
             };
-          }
-        );
+          });
 
         setConversations(fetchedConversations);
       } catch (err) {
@@ -154,7 +139,7 @@ export default function ConversationList({
         {
           id: newConversation.id,
           user: newConversation.participants.find(
-            (p: any) => p.user.id === userId
+            (p: { user: User }) => p.user.id === userId
           )?.user.username,
           lastMessage: "New conversation",
           lastMessageSender: "",
@@ -174,14 +159,13 @@ export default function ConversationList({
     }
   };
 
-  // Dans l'effet de socket :
   useEffect(() => {
     socket.connect();
 
     const handleNewMessage = (data: {
       conversationId: string;
       content: string;
-      sender: any;
+      sender: User;
     }) => {
       if (data.conversationId !== selectedConversationRef.current) {
         setUnreadMessages((prev) => ({
@@ -207,7 +191,8 @@ export default function ConversationList({
     return () => {
       socket.off("newMessage", handleNewMessage);
     };
-  }, []);
+  }, [setUnreadMessages, setConversations]);
+
   const handleSelectConversation = (id: string, title: string) => {
     onSelect(id);
     onSelectToSetTitle(title);

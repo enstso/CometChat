@@ -1,11 +1,11 @@
-import type { ButtonHTMLAttributes } from "react";
-import { cn } from "../../lib/utils";
+import { cn } from "../../utils/cn";
 import { motion } from "framer-motion";
+import type { MotionButtonProps } from "../../types/ui/button";
 
 export default function Button({
   className,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement>) {
+}: MotionButtonProps) {
   return (
     <motion.button
       initial={{ opacity: 0, scale: 0.95 }}

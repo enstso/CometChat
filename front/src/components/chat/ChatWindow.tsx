@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Input from "../ui/Input";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
@@ -7,17 +7,22 @@ import { GET_MESSAGES, SEND_MESSAGE } from "../../services/requestsGql";
 import Message from "./Message";
 import { useAuth0 } from "@auth0/auth0-react";
 import { socket } from "../../services/webSocket";
+import type { MessageType } from "../../types/message";
+import type { ChatWindowType } from "../../types/chat";
+import { v4 as uuidv4 } from "uuid";
+import type { MessageEdge } from "../../gql/graphql";
 
 export default function ChatWindow({
   selectedConversation,
-  title
-}: any) {
-  const [messages, setMessages] = useState<any[]>([]);
+  title,
+}: ChatWindowType) {
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState<string | null>(null);
   const [newMessageIndicator, setNewMessageIndicator] = useState(false);
+
   const { user: currentUser } = useAuth0();
   const client = useApolloClient();
   const [sendMessage] = useMutation(SEND_MESSAGE);
@@ -37,8 +42,7 @@ export default function ChatWindow({
       messagesContainerRef.current.scrollHeight;
   };
 
-  // Load initial messages when conversation or user changes
-  const loadInitialMessages = async () => {
+  const loadInitialMessages = useCallback(async () => {
     if (!selectedConversation || !currentUser) return;
 
     setLoadingMessages(true);
@@ -56,15 +60,16 @@ export default function ChatWindow({
         fetchPolicy: "no-cache",
       });
 
-      const fetchedMessages = data.getMessages.edges.map((edge: any) => ({
-        id: edge.node.id,
-        content: edge.node.content,
-        fromMe: edge.node.sender.username === currentUser.nickname,
-        createdAt: edge.node.createdAt,
-        sender: edge.node.sender,
-      }));
+      const fetchedMessages = data.getMessages.edges.map(
+        (edge: MessageEdge) => ({
+          id: edge.node.id,
+          content: edge.node.content,
+          fromMe: edge.node.sender.username === currentUser.nickname,
+          createdAt: edge.node.createdAt,
+          sender: edge.node.sender,
+        })
+      );
 
-      // Reverse to display oldest first
       const reversedMessages = fetchedMessages.reverse();
       setMessages(reversedMessages);
 
@@ -76,7 +81,6 @@ export default function ChatWindow({
         setCursor(null);
       }
 
-      // Scroll to bottom after messages loaded
       setTimeout(() => {
         if (messagesContainerRef.current) {
           messagesContainerRef.current.scrollTop =
@@ -88,11 +92,11 @@ export default function ChatWindow({
     }
 
     setLoadingMessages(false);
-  };
+  }, [selectedConversation, currentUser, client]);
 
   useEffect(() => {
     loadInitialMessages();
-  }, [selectedConversation, currentUser, client]);
+  }, [loadInitialMessages]);
 
   // Load more messages when user scrolls near top
   const loadMoreMessages = async () => {
@@ -118,13 +122,15 @@ export default function ChatWindow({
         fetchPolicy: "no-cache",
       });
 
-      const fetchedMessages = data.getMessages.edges.map((edge: any) => ({
-        id: edge.node.id,
-        content: edge.node.content,
-        fromMe: edge.node.sender.username === currentUser.nickname,
-        createdAt: edge.node.createdAt,
-        sender: edge.node.sender,
-      }));
+      const fetchedMessages = data.getMessages.edges.map(
+        (edge: MessageEdge) => ({
+          id: edge.node.id,
+          content: edge.node.content,
+          fromMe: edge.node.sender.username === currentUser?.nickname,
+          createdAt: edge.node.createdAt,
+          sender: edge.node.sender,
+        })
+      );
 
       const reversedMessages = fetchedMessages.reverse();
       setMessages((prev) => [...reversedMessages, ...prev]);
@@ -161,12 +167,16 @@ export default function ChatWindow({
   const handleSendMessage = async () => {
     if (!messageText.trim() || !selectedConversation || !currentUser) return;
 
-    const tempMessage = {
+    const tempMessage: MessageType = {
       id: "temp-" + Date.now(),
       content: messageText,
       fromMe: true,
       createdAt: new Date().toISOString(),
-      sender: { username: currentUser.nickname },
+      sender: {
+        id: "",
+        auth0Id: currentUser.sub ?? "",
+        username: currentUser.nickname ?? "",
+      },
       conversationId: selectedConversation,
     };
 
@@ -201,7 +211,7 @@ export default function ChatWindow({
   useEffect(() => {
     if (!selectedConversation || !currentUser) return;
 
-    const handleIncomingMessage = (msg: any) => {
+    const handleIncomingMessage = (msg: MessageType) => {
       if (msg.conversationId !== selectedConversation) return;
 
       // Ne traite pas les messages que j'ai envoyés moi-même
@@ -231,10 +241,9 @@ export default function ChatWindow({
     return () => {
       socket.off("newMessage", handleIncomingMessage);
     };
-  }, [selectedConversation, currentUser]);
+  }, [selectedConversation, messages, currentUser]);
 
   const handleNewMessageClick = () => {
-    socket.emit("join", selectedConversation);
     scrollToBottom();
     setNewMessageIndicator(false);
   };
@@ -265,7 +274,7 @@ export default function ChatWindow({
         )}
 
         {messages.map((msg) => (
-          <Message key={msg.createdAt} message={msg} />
+          <Message key={uuidv4()} message={msg} />
         ))}
       </div>
 
@@ -288,7 +297,7 @@ export default function ChatWindow({
               d="M19 9l-7 7-7-7"
             />
           </svg>
-          Nouveau message
+          New message
         </button>
       )}
 
@@ -307,7 +316,6 @@ export default function ChatWindow({
             }}
             disabled={loadingMessages}
             aria-label="Message input"
-            rows={1}
           />
           <Button
             onClick={handleSendMessage}
