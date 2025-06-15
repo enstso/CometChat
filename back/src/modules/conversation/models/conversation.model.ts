@@ -1,5 +1,5 @@
 import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { Message } from 'src/modules/message/models/message.model';
+import { Message } from '../../message/models/message.model';
 import { ConversationParticipant } from './conversation-participant.model';
 
 @ObjectType()
