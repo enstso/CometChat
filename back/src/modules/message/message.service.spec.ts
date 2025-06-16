@@ -90,7 +90,7 @@ describe('MessageService', () => {
 
       expect(queue.add).toHaveBeenCalledWith('send', input);
       expect(result).toEqual({
-        result: 'Message en file d’attente',
+        result: 'Message in queue',
         jobId: 'job123',
       });
     });
