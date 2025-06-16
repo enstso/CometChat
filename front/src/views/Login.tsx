@@ -10,6 +10,7 @@ export default function Login() {
     try {
       await loginWithRedirect({
         appState: { returnTo: "/chat" },
+        // @ts-ignore
         redirectUri: `${window.location.origin}/auth/callback`,
       });
     } catch (error) {

@@ -1,4 +1,3 @@
-import React from "react";
 import FormRegister from "../components/authentication/FormRegister";
 
 const Register = () => {
