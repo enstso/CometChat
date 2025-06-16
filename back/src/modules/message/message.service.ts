@@ -61,7 +61,7 @@ export class MessageService {
     const job = await this.queue.add('send', input);
     // Return a response indicating the message is queued with the job ID
     return {
-      result: 'Message en file d’attente',
+      result: 'Message in queue',
       jobId: job.id,
     };
   }

@@ -13,14 +13,14 @@ import { WebsocketModule } from './modules/websocket/websocket.module';
 // Main application module that imports and organizes all feature modules
 @Module({
   imports: [
-    BullMqModule,           // Module for handling job queues with BullMQ
-    GqlModule,              // GraphQL module configuration
-    AuthModule,             // Authentication module
-    UserModule,             // User management module
-    HealthModule,           // Health check module
-    ConversationModule,     // Conversation feature module
-    MessageModule,          // Messaging feature module
-    WebsocketModule,        // WebSocket communication module
+    BullMqModule, // Module for handling job queues with BullMQ
+    GqlModule, // GraphQL module configuration
+    AuthModule, // Authentication module
+    UserModule, // User management module
+    HealthModule, // Health check module
+    ConversationModule, // Conversation feature module
+    MessageModule, // Messaging feature module
+    WebsocketModule, // WebSocket communication module
   ],
   providers: [AppResolver, AppService], // Provide application-wide resolver and service
 })

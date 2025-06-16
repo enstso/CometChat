@@ -17,7 +17,7 @@ export default function Login() {
       await loginWithRedirect({
         appState: { returnTo: "/chat" },
         // Specify the redirect URI after login callback
-        // @ts-ignore to bypass TypeScript warning on redirectUri
+        // @ts-expect-error not implemented in the doc
         redirectUri: `${window.location.origin}/auth/callback`,
       });
     } catch (error) {
@@ -33,9 +33,10 @@ export default function Login() {
       {/* Login button which triggers handleLogin on click */}
       <button
         onClick={handleLogin}
-        disabled={loading} // Disable button during login process
         className={`px-6 py-3 rounded text-white font-semibold transition-colors duration-300 ${
-          loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+          loading
+            ? "bg-blue-400 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700"
         }`}
       >
         {/* Display loading text when login is in progress */}

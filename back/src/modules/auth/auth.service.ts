@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-
 import { UserService } from '../user/user.service';
 import { Auth0UserDto } from './dto/auth0-user.dto';
 

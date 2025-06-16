@@ -1,34 +1,24 @@
 /* eslint-disable */
-import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+import * as types from './graphql';
+import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 
-// Container object to hold GraphQL documents keyed by their query strings
-const documents: any = [];
-
+const documents = [];
 /**
- * The graphql function parses GraphQL query strings into document nodes
- * that can be used by GraphQL clients for operations like queries or mutations.
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  *
- * Example usage:
+ *
+ * @example
  * ```ts
  * const query = graphql(`query GetUser($id: ID!) { user(id: $id) { name } }`);
  * ```
  *
- * Note: The argument type is unknown because the documents object is empty.
- * To get proper typings, you need to regenerate the GraphQL types.
+ * The query argument is unknown!
+ * Please regenerate the types.
  */
 export function graphql(source: string): unknown;
 
-// Implementation of the graphql function returns the matching document from the cache
-// or an empty object if the document is not found.
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};
 }
 
-// Utility type to extract the TypeScript type from a TypedDocumentNode.
-// Given a DocumentNode with data type TType, this extracts TType.
-export type DocumentType<TDocumentNode extends DocumentNode<any, any>> = TDocumentNode extends DocumentNode<
-  infer TType,
-  any
->
-  ? TType
-  : never;
+export type DocumentType<TDocumentNode extends DocumentNode<any, any>> = TDocumentNode extends DocumentNode<  infer TType,  any>  ? TType  : never;

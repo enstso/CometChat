@@ -55,7 +55,7 @@ export default function NewMessageToast({
             className="bg-white rounded-2xl shadow-lg border border-indigo-200 overflow-hidden cursor-pointer"
             onClick={() => {
               // When toast clicked, invoke optional handler with conversation ID
-              onClickConversation?.(msg.conversationId ?? '');
+              onClickConversation?.(msg.conversationId ?? "");
               // Remove the clicked message from the toast list
               setMessages((prev) => prev.filter((m) => m !== msg));
             }}
@@ -69,7 +69,7 @@ export default function NewMessageToast({
               <div className="flex-1">
                 {/* Bold sender info text */}
                 <p className="text-sm text-gray-800 font-semibold">
-                  Nouveau message de {msg.sender.username}
+                  New message from {msg.sender.username}
                 </p>
                 {/* Message preview, limited to 2 lines */}
                 <p className="text-sm text-gray-600 line-clamp-2">

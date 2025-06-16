@@ -91,7 +91,7 @@ export default function ConversationItem({
       {/* Show the last message sender and content, or fallback text if none */}
       <p className="text-sm text-gray-500 truncate">
         {lastMessage
-          ? `${lastMessageSender ?? "Inconnu"}: ${lastMessage}`
+          ? `${lastMessageSender ?? "Unknown"}: ${lastMessage}`
           : "No messages yet"}
       </p>
 

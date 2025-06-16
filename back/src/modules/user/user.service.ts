@@ -28,10 +28,7 @@ export class UserService {
           data: {
             auth0Id: sub,
             email: email ?? '', // Use empty string if email is null or undefined
-            username:
-              username ??
-              email?.split('@')[0] ??
-              `user_${Date.now()}`, // Fallback username generation
+            username: username ?? email?.split('@')[0] ?? `user_${Date.now()}`, // Fallback username generation
           },
         });
       }

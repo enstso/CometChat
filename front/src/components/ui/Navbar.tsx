@@ -28,7 +28,9 @@ export default function Navbar() {
       className="bg-white shadow-md px-4 py-3 flex justify-between items-center fixed top-0 w-full z-50"
     >
       {/* App title/logo */}
-      <div className="text-xl font-bold text-indigo-600 tracking-tight">CometChat</div>
+      <div className="text-xl font-bold text-indigo-600 tracking-tight">
+        CometChat
+      </div>
       <div className="flex items-center gap-4 text-sm">
         {/* Show logged in user nickname on larger screens */}
         {user?.nickname && (
@@ -38,7 +40,9 @@ export default function Navbar() {
         )}
         {/* Logout button triggers Auth0 logout and redirects to home page */}
         <button
-          onClick={() => logout({ returnTo: window.location.origin } as LogoutOptions)}
+          onClick={() =>
+            logout({ returnTo: window.location.origin } as LogoutOptions)
+          }
           className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors px-4 py-1.5 rounded-md shadow-sm"
         >
           Logout

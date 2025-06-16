@@ -13,10 +13,10 @@ export const CurrentUser = createParamDecorator(
   (data: unknown, context: ExecutionContext): any => {
     // Convert the ExecutionContext to a GraphQL-specific context
     const ctx = GqlExecutionContext.create(context);
-    
+
     // Get the request object from the GraphQL context
     const gqlContext = ctx.getContext<GqlContext>();
-    
+
     // Return the user attached to the request, if any
     return gqlContext.req.user;
   },

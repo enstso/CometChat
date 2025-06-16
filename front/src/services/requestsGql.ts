@@ -33,11 +33,11 @@ export const GET_USER_CONVERSATIONS = gql`
           id
           title
           messages {
-            content
-            createdAt
-            sender {
-              username
-            }
+          content
+          createdAt
+          sender {
+          username
+          }
           }
           participants {
             id

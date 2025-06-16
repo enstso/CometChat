@@ -19,9 +19,5 @@ import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin
   providers: [AppResolver], // Register the application-level GraphQL resolver
 })
 export class GqlModule {
-  constructor() {
-    console.log(process.cwd()); // Log the current working directory at startup
-    // This constructor is intentionally left empty.
-    // It can be used for any initialization logic if needed in the future.
-  }
+  constructor() {}
 }

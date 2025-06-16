@@ -26,7 +26,7 @@ export default function AuthCallback() {
 
     // Call the authentication handler
     handleAuth();
-  }, [handleRedirectCallback, navigate]); // Dependencies: rerun only if these change
+  }, [handleRedirectCallback, navigate]);
 
   // Display a temporary message while the login is being processed
   return <p>Logging you in...</p>;
