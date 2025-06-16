@@ -115,3 +115,15 @@ export const SEND_MESSAGE = gql`
     }
   }
 `;
+
+// Mutation to register a new user via Auth0
+export const REGISTER_USER = gql`
+  mutation RegisterUser($input: RegisterAuth0User!) {
+    registerUser(input: $input) {
+      success
+      message
+      user_id
+      email
+    }
+  }
+`;

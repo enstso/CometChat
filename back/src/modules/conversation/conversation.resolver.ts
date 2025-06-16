@@ -1,4 +1,4 @@
-import { UseGuards } from '@nestjs/common'; 
+import { UseGuards } from '@nestjs/common';
 import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { ConversationService } from './conversation.service';
 import { ConversationPaginationArgs } from './dto/conversation.args';

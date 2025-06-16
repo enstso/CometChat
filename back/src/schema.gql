@@ -72,6 +72,7 @@ type MessagePageInfo {
 
 type Mutation {
   createConversation(input: CreateConversationInput!): Conversation!
+  registerUser(input: RegisterAuth0User!): RegisterUserResponse!
   sendMessage(sendMessageInput: SendMessageInput!): SendMessageResponse!
 }
 
@@ -82,6 +83,18 @@ type Query {
   hello: String!
   me: User!
   searchUsers(query: String!): [User!]!
+}
+
+input RegisterAuth0User {
+  email: String!
+  password: String!
+}
+
+type RegisterUserResponse {
+  email: String
+  message: String!
+  success: Boolean!
+  user_id: String
 }
 
 input SendMessageInput {

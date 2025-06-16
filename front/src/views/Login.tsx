@@ -1,6 +1,7 @@
 // Import necessary hooks from Auth0 and React
 import { useAuth0 } from "@auth0/auth0-react";
 import { useState } from "react";
+import Spinner from "../components/ui/Spinner";
 
 // Define the Login component responsible for handling user login
 export default function Login() {
@@ -28,20 +29,42 @@ export default function Login() {
   };
 
   return (
-    // Container centering the login button vertically and horizontally
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      {/* Login button which triggers handleLogin on click */}
-      <button
-        onClick={handleLogin}
-        className={`px-6 py-3 rounded text-white font-semibold transition-colors duration-300 ${
-          loading
-            ? "bg-blue-400 cursor-not-allowed"
-            : "bg-blue-600 hover:bg-blue-700"
-        }`}
-      >
-        {/* Display loading text when login is in progress */}
-        {loading ? "Logging in..." : "Log In"}
-      </button>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-200 via-blue-100 to-pink-200 px-4">
+      <div className="bg-white/60 backdrop-blur-lg shadow-xl rounded-2xl p-10 w-full max-w-md text-center animate-fade-in">
+        <h1 className="text-4xl font-bold text-gray-800 mb-4">Welcome Back</h1>
+        <p className="text-gray-600 mb-8">Log in to join the conversation.</p>
+
+        <button
+          onClick={handleLogin}
+          disabled={loading}
+          className={`w-full py-3 px-6 rounded-lg font-semibold text-white text-lg flex items-center justify-center transition duration-300 ${
+            loading
+              ? "bg-blue-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
+        >
+          {loading ? (
+            <>
+              <Spinner />
+              <span className="ml-2">Logging in...</span>
+            </>
+          ) : (
+            "Log In with Auth0"
+          )}
+        </button>
+
+        <p className="mt-6 text-sm text-gray-500">
+          Secure authentication powered by{" "}
+          <a
+            href="https://auth0.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline font-medium"
+          >
+            Auth0
+          </a>
+        </p>
+      </div>
     </div>
   );
 }

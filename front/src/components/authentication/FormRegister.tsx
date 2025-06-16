@@ -1,44 +1,64 @@
 import React, { useState } from "react";
+import { useMutation } from "@apollo/client";
+import { REGISTER_USER } from "../../services/requestsGql";
 import Input from "../ui/Input";
 import Button from "../ui/Button";
 
-// Registration form component
 const FormRegister = () => {
-  // Local state for email, password, and password confirmation fields
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
-  // Handle form submission event
-  const handleSubmit = (e: React.FormEvent) => {
+  const [registerUser, { loading }] = useMutation(REGISTER_USER);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg("");
+    setSuccessMsg("");
 
-    // Check if password and confirm password match
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
-      return; // Stop submission if passwords do not match
+      setErrorMsg("Passwords do not match");
+      return;
     }
 
-    // Log registration data to the console
-    console.log("Registering:", { email, password });
+    try {
+      const { data } = await registerUser({
+        variables: {
+          input: {
+            email,
+            password,
+          },
+        },
+      });
+
+      if (data?.registerUser?.success) {
+        setSuccessMsg("User successfully registered!");
+        // Optionally redirect to login
+      } else {
+        setErrorMsg(data?.registerUser?.message || "Registration failed");
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setErrorMsg(err.message);
+      } else {
+        setErrorMsg("An unexpected error occurred");
+      }
+    }
   };
 
   return (
-    // Container div centered vertically and horizontally with gradient background
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-200 px-4">
       <form
         onSubmit={handleSubmit}
-        // Form styling with blur, semi-transparent white background, shadow, border, padding, rounded corners, max width, and vertical spacing
         className="backdrop-blur-xl bg-white/40 shadow-xl border border-white/30 p-8 rounded-2xl w-full max-w-md space-y-6"
       >
-        {/* Form title */}
         <h2 className="text-3xl font-extrabold text-center text-gray-800">
           Create Account
         </h2>
 
-        {/* Container for input fields with vertical spacing */}
         <div className="space-y-4">
-          {/* Email input controlled by state */}
           <Input
             type="email"
             placeholder="Email address"
@@ -47,7 +67,6 @@ const FormRegister = () => {
             required
             className="bg-white/80 border-gray-300 placeholder-gray-500"
           />
-          {/* Password input */}
           <Input
             type="password"
             placeholder="Password"
@@ -56,7 +75,6 @@ const FormRegister = () => {
             required
             className="bg-white/80 border-gray-300 placeholder-gray-500"
           />
-          {/* Confirm password input */}
           <Input
             type="password"
             placeholder="Confirm password"
@@ -67,15 +85,17 @@ const FormRegister = () => {
           />
         </div>
 
-        {/* Submit button */}
+        {errorMsg && <p className="text-red-600 text-sm">{errorMsg}</p>}
+        {successMsg && <p className="text-green-600 text-sm">{successMsg}</p>}
+
         <Button
           type="submit"
           className="w-full py-3 font-semibold bg-purple-600 hover:bg-purple-700 transition duration-300"
+          disabled={loading}
         >
-          Sign Up
+          {loading ? "Signing up..." : "Sign Up"}
         </Button>
 
-        {/* Link to login page */}
         <p className="text-center text-sm text-gray-600">
           Already have an account?{" "}
           <a
