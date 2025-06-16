@@ -9,5 +9,4 @@ export class HealthController {
   async check() {
     await this.healthService.check();
   }
-  async healthCheck() {}
 }
