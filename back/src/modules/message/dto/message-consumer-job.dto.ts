@@ -1,12 +1,16 @@
 import { IsString } from 'class-validator';
 
+// DTO class for validating the properties of a message consumed from a job queue
 export class MessageConsumerJobDto {
-  @IsString()
+  @IsString() // Validate that 'content' is a string
   content: string;
-  @IsString()
+
+  @IsString() // Validate that 'senderId' is a string
   senderId: string;
-  @IsString()
+
+  @IsString() // Validate that 'conversationId' is a string
   conversationId: string;
-  @IsString()
+
+  @IsString() // Validate that 'socketId' is a string
   socketId: string;
 }
