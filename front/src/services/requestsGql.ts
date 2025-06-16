@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 
-// ✅ Me (profil utilisateur actuel)
+// Query to fetch the current logged-in user's profile information (id, email, username)
 export const GET_ME = gql`
   query Me {
     me {
@@ -11,7 +11,7 @@ export const GET_ME = gql`
   }
 `;
 
-// ✅ Recherche d'utilisateurs par username
+// Query to search for users by username, returning id, username, and email for matches
 export const SEARCH_USERS = gql`
   query SearchUsers($query: String!) {
     searchUsers(query: $query) {
@@ -22,7 +22,8 @@ export const SEARCH_USERS = gql`
   }
 `;
 
-// ✅ Conversations de l'utilisateur connecté (avec pagination)
+// Query to fetch conversations of the authenticated user with pagination support
+// Returns conversation details including messages and participants info
 export const GET_USER_CONVERSATIONS = gql`
   query GetUserConversations($cursor: String, $limit: Int!) {
     getUserConversations(cursor: $cursor, limit: $limit) {
@@ -32,11 +33,11 @@ export const GET_USER_CONVERSATIONS = gql`
           id
           title
           messages {
-          content
-          createdAt
-          sender {
-          username
-          }
+            content
+            createdAt
+            sender {
+              username
+            }
           }
           participants {
             id
@@ -59,7 +60,8 @@ export const GET_USER_CONVERSATIONS = gql`
   }
 `;
 
-// ✅ Messages d'une conversation (avec pagination)
+// Query to fetch messages of a specific conversation with pagination support
+// Returns message id, content, creation date, and sender info
 export const GET_MESSAGES = gql`
   query GetMessages($conversationId: ID!, $cursor: String, $limit: Int!) {
     getMessages(conversationId: $conversationId, cursor: $cursor, limit: $limit) {
@@ -85,7 +87,8 @@ export const GET_MESSAGES = gql`
   }
 `;
 
-// ✅ Mutation pour créer une conversation
+// Mutation to create a new conversation between users with given input data
+// Returns the new conversation id, title, and participant details
 export const CREATE_CONVERSATION = gql`
   mutation CreateConversation($input: CreateConversationInput!) {
     createConversation(input: $input) {
@@ -102,7 +105,8 @@ export const CREATE_CONVERSATION = gql`
   }
 `;
 
-// ✅ Mutation pour envoyer un message (retourne jobId + message)
+// Mutation to send a message in a conversation
+// Returns a result string and optional jobId (e.g., for async processing)
 export const SEND_MESSAGE = gql`
   mutation SendMessage($sendMessageInput: SendMessageInput!) {
     sendMessage(sendMessageInput: $sendMessageInput) {
