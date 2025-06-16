@@ -19,7 +19,7 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci  # Assure-toi que package-lock.json est présent dans le repo
 
       - name: Run Jest tests
         run: npm test
@@ -35,7 +35,7 @@ jobs:
       - name: Log in to DockerHub
         run: echo "${{ secrets.DOCKERPASSWORD }}" | docker login -u "${{ secrets.DOCKERUSERNAME }}" --password-stdin
 
-      - name: Build Docker image
+      - name: Build Docker images
         run: |
           IMAGE_TAG=${{ github.sha }}
           docker build -t ${{ secrets.DOCKERUSERNAME }}/cometchat-back:${IMAGE_TAG} ./back
@@ -43,33 +43,33 @@ jobs:
           docker tag ${{ secrets.DOCKERUSERNAME }}/cometchat-back:${IMAGE_TAG} ${{ secrets.DOCKERUSERNAME }}/cometchat-back:latest
           docker tag ${{ secrets.DOCKERUSERNAME }}/cometchat-front:${IMAGE_TAG} ${{ secrets.DOCKERUSERNAME }}/cometchat-front:latest
 
-
-      - name: Push Docker image
+      - name: Push Docker images
         run: |
           docker push ${{ secrets.DOCKERUSERNAME }}/cometchat-back:${{ github.sha }}
           docker push ${{ secrets.DOCKERUSERNAME }}/cometchat-back:latest
           docker push ${{ secrets.DOCKERUSERNAME }}/cometchat-front:${{ github.sha }}
           docker push ${{ secrets.DOCKERUSERNAME }}/cometchat-front:latest
+
   deploy:
-      needs: build-and-push
-      if: github.ref == 'refs/heads/main'
-      runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-        - name: Setup SSH
-          run: |
-            mkdir -p ~/.ssh
-            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-            chmod 600 ~/.ssh/id_ed25519
-            ssh-keyscan -H remote-host.com >> ~/.ssh/known_hosts
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H remote-host.com >> ~/.ssh/known_hosts
 
-        - name: Run remote deployment script
-          run: |
-            ssh ${{ secrets.SSH_PRIVATE_KEY }} 'bash /home/cipher/personal/CometChat/rePullImage.sh'
-            ssh ${{ secrets.SSH_PRIVATE_KEY }} '
-              kubectl rollout restart deployment cometchat-back
-              kubectl rollout restart deployment cometchat-front
-            '
+      - name: Run remote deployment script
+        run: |
+          ssh -i ~/.ssh/id_ed25519 {{ secrets.REMOTE_HOST }} 'bash /home/cipher/personal/CometChat/rePullImage.sh'
+          ssh -i ~/.ssh/id_ed25519 {{ secrets.REMOTE_HOST }} '
+            kubectl rollout restart deployment cometchat-back
+            kubectl rollout restart deployment cometchat-front
+          '
