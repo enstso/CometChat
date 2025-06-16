@@ -7,6 +7,8 @@ import { Auth0UserDto } from './dto/auth0-user.dto';
 export class AuthService {
   constructor(private readonly userService: UserService) {}
 
+  async registerUser() {}
+
   async validateUser(payload: Auth0UserDto) {
     return this.userService.findOrCreateUser(payload);
   }

@@ -1,19 +1,14 @@
 import { Controller, Get } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
+import { HealthService } from './health.service';
 
 @Controller('health')
 export class HealthController {
-  constructor(
-    @InjectQueue('health-check-queue') private readonly queue: Queue,
-  ) {}
+  constructor(private readonly healthService: HealthService) {}
 
   @Get()
   async check() {
-    await this.queue.add('health-check', {
-      result: 'OK',
-    });
-    console.log('Health check triggered! (producer)');
-    return { result: 'OK' };
+    await this.healthService.check();
   }
+
+  async healthCheck() {}
 }

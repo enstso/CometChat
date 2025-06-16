@@ -3,11 +3,10 @@ import { ConversationService } from './conversation.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebsocketService } from '../websocket/websocket.service';
 import { BadRequestException } from '@nestjs/common';
+import type { Server as SocketIOServer } from 'socket.io';
 
 describe('ConversationService', () => {
   let service: ConversationService;
-  let prisma: PrismaService;
-  let websocket: WebsocketService;
 
   const mockPrisma = {
     user: { findUnique: jest.fn() },
@@ -15,8 +14,15 @@ describe('ConversationService', () => {
     conversationParticipant: { findMany: jest.fn() },
   };
 
+  // Mock plus complet et typé pour socket.io
+  const mockEmit = jest.fn();
+  const mockTo = jest.fn(() => ({ emit: mockEmit }));
+
   const mockWebsocket = {
-    server: { to: jest.fn().mockReturnThis(), emit: jest.fn() },
+    server: {
+      to: mockTo,
+      emit: jest.fn(),
+    } as unknown as SocketIOServer,
   };
 
   beforeEach(async () => {
@@ -29,9 +35,6 @@ describe('ConversationService', () => {
     }).compile();
 
     service = module.get<ConversationService>(ConversationService);
-    prisma = module.get<PrismaService>(PrismaService);
-    websocket = module.get<WebsocketService>(WebsocketService);
-
     jest.clearAllMocks();
   });
 
@@ -56,7 +59,11 @@ describe('ConversationService', () => {
       };
       mockPrisma.conversation.findFirst.mockResolvedValue(existingConversation);
 
-      const result = await service.create({ userId1: 'u1', userId2: 'u2', title: 'Chat' });
+      const result = await service.create({
+        userId1: 'u1',
+        userId2: 'u2',
+        title: 'Chat',
+      });
 
       expect(result).toBe(existingConversation);
       expect(mockPrisma.conversation.create).not.toHaveBeenCalled();
@@ -67,17 +74,23 @@ describe('ConversationService', () => {
       mockPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user2' });
       mockPrisma.conversation.findFirst.mockResolvedValue(null);
 
-      const newConversation = { id: 'newConv', title: 'New chat', participants: [] };
+      const newConversation = {
+        id: 'newConv',
+        title: 'New chat',
+        participants: [],
+      };
       mockPrisma.conversation.create.mockResolvedValue(newConversation);
 
-      const result = await service.create({ userId1: 'u1', userId2: 'u2', title: 'Chat' });
+      const result = await service.create({
+        userId1: 'u1',
+        userId2: 'u2',
+        title: 'Chat',
+      });
 
       expect(result).toBe(newConversation);
       expect(mockPrisma.conversation.create).toHaveBeenCalled();
-      expect(websocket.server.to).toHaveBeenCalledTimes(2);
-      expect(websocket.server.emit).toHaveBeenCalledWith('newConversation', newConversation);
+      expect(mockTo).toHaveBeenCalledTimes(2);
+      expect(mockEmit).toHaveBeenCalledWith('newConversation', newConversation);
     });
   });
-
-  // Tu peux aussi écrire ici des tests pour paginateUserConversations...
 });

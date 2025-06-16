@@ -5,7 +5,6 @@ import { Auth0UserDto } from './dto/auth0-user.dto';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let userService: UserService;
 
   const mockUserService = {
     findOrCreateUser: jest.fn(),
@@ -20,7 +19,6 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    userService = module.get<UserService>(UserService);
   });
 
   afterEach(() => {
@@ -39,7 +37,7 @@ describe('AuthService', () => {
 
     const result = await service.validateUser(payload);
 
-    expect(userService.findOrCreateUser).toHaveBeenCalledWith(payload);
+    expect(mockUserService.findOrCreateUser).toHaveBeenCalledWith(payload);
     expect(result).toEqual(mockUser);
   });
 });

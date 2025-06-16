@@ -52,8 +52,12 @@ describe('MessageConsumer', () => {
       createdAt: new Date(),
     };
 
-    (prismaService.user.findUniqueOrThrow as jest.Mock).mockResolvedValue(mockSender);
-    (prismaService.message.create as jest.Mock).mockResolvedValue(mockSavedMessage);
+    (prismaService.user.findUniqueOrThrow as jest.Mock).mockResolvedValue(
+      mockSender,
+    );
+    (prismaService.message.create as jest.Mock).mockResolvedValue(
+      mockSavedMessage,
+    );
 
     await messageConsumer.process(job);
 
@@ -70,16 +74,21 @@ describe('MessageConsumer', () => {
       include: { sender: true },
     });
 
-    expect(websocketService.server.except).toHaveBeenCalledWith(jobData.socketId);
-    expect(websocketService.server.emit).toHaveBeenCalledWith('newMessage', expect.objectContaining({
-      conversationId: jobData.conversationId,
-      content: jobData.content,
-      sender: {
-        id: mockSender.id,
-        username: mockSender.username,
-      },
-      createdAt: expect.any(Date),
-    }));
+    expect(websocketService.server.except).toHaveBeenCalledWith(
+      jobData.socketId,
+    );
+    expect(websocketService.server.emit).toHaveBeenCalledWith(
+      'newMessage',
+      expect.objectContaining({
+        conversationId: jobData.conversationId,
+        content: jobData.content,
+        sender: {
+          id: mockSender.id,
+          username: mockSender.username,
+        },
+        createdAt: expect.any(Date),
+      }),
+    );
   });
 
   it('should ignore jobs with other names', async () => {

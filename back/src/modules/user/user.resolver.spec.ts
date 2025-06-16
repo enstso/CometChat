@@ -47,15 +47,30 @@ describe('UserResolver', () => {
       };
 
       const mockUsers: User[] = [
-        { id: 'user2', auth0Id: 'auth0|user2', username: 'johnny', email: 'johnny@example.com' },
-        { id: 'user3', auth0Id: 'auth0|user3', username: 'johnathan', email: 'johnathan@example.com' },
+        {
+          id: 'user2',
+          auth0Id: 'auth0|user2',
+          username: 'johnny',
+          email: 'johnny@example.com',
+        },
+        {
+          id: 'user3',
+          auth0Id: 'auth0|user3',
+          username: 'johnathan',
+          email: 'johnathan@example.com',
+        },
       ];
 
-      (userService.searchUsersByUsername as jest.Mock).mockResolvedValue(mockUsers);
+      (userService.searchUsersByUsername as jest.Mock).mockResolvedValue(
+        mockUsers,
+      );
 
       const result = await resolver.searchUsers(query, currentUser);
 
-      expect(userService.searchUsersByUsername).toHaveBeenCalledWith(query, currentUser);
+      expect(userService.searchUsersByUsername).toHaveBeenCalledWith(
+        query,
+        currentUser,
+      );
       expect(result).toEqual(mockUsers);
     });
   });
