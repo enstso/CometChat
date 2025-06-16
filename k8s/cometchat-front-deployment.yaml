@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometchat-front
+  labels:
+    app: cometchat-front
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cometchat-front
+  template:
+    metadata:
+      labels:
+        app: cometchat-front
+    spec:
+      containers:
+        - name: front
+          image: enstso/cometchat-front:latest
+          ports:
+            - containerPort: 5173
+          envFrom:
+            - configMapRef:
+                name: cometchat-front-configmap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometchat-front-service
+spec:
+  selector:
+    app: cometchat-front
+  ports:
+    - port: 5173
+      targetPort: 5173
+  type: ClusterIP

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometchat-back
+  labels:
+    app: cometchat-back
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cometchat-back
+  template:
+    metadata:
+      labels:
+        app: cometchat-back
+    spec:
+      containers:
+        - name: back
+          image: enstso/cometchat-back:latest
+          ports:
+            - containerPort: 3002
+          envFrom:
+            - configMapRef:
+                name: cometchat-back-configmap
+            - secretRef:
+                name: cometchat-back-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometchat-back-service
+spec:
+  selector:
+    app: cometchat-back
+  ports:
+    - port: 3002
+      targetPort: 3002
+  type: ClusterIP
