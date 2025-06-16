@@ -10,6 +10,7 @@ import { SendMessageResponse } from './dto/send-message.output';
 export class MessageResolver {
   constructor(private readonly messageService: MessageService) {}
 
+  // GraphQL query to fetch paginated messages
   @Query(() => MessageConnection)
   async getMessages(
     @Args() messagePaginationArgs: MessagePaginationArgs,
@@ -17,6 +18,7 @@ export class MessageResolver {
     return await this.messageService.paginateMessages(messagePaginationArgs);
   }
 
+  // GraphQL mutation to send a new message
   @Mutation(() => SendMessageResponse)
   async sendMessage(
     @Args('sendMessageInput') sendMessageInput: SendMessageInput,

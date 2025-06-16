@@ -2,9 +2,11 @@ import { ObjectType, Field } from '@nestjs/graphql';
 import { Conversation } from '../models/conversation.model';
 
 @ObjectType()
+// GraphQL object type representing an edge in a paginated list of conversations
 export class ConversationEdge {
   @Field(() => String)
-  cursor: string; // ID de la conversation ou timestamp
+  cursor: string; // The cursor used for pagination, typically conversation ID or timestamp
+
   @Field(() => Conversation)
-  node: Conversation; // La conversation elle-même
+  node: Conversation; // The conversation object contained in this edge
 }

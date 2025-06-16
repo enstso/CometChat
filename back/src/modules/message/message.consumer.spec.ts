@@ -3,31 +3,34 @@ import { PrismaService } from '../prisma/prisma.service';
 import { WebsocketService } from '../websocket/websocket.service';
 import { Job } from 'bullmq';
 
+// Test suite for the MessageConsumer class
 describe('MessageConsumer', () => {
   let messageConsumer: MessageConsumer;
   let prismaService: PrismaService;
   let websocketService: WebsocketService;
 
+  // Setup mock services and instantiate MessageConsumer before each test
   beforeEach(() => {
     prismaService = {
       user: {
-        findUniqueOrThrow: jest.fn(),
+        findUniqueOrThrow: jest.fn(), // Mock the user lookup method
       },
       message: {
-        create: jest.fn(),
+        create: jest.fn(), // Mock the message creation method
       },
     } as any;
 
     websocketService = {
       server: {
-        except: jest.fn().mockReturnThis(),
-        emit: jest.fn(),
+        except: jest.fn().mockReturnThis(), // Mock socket.io 'except' method chaining
+        emit: jest.fn(), // Mock socket.io 'emit' method
       },
     } as any;
 
     messageConsumer = new MessageConsumer(prismaService, websocketService);
   });
 
+  // Test processing of a valid 'send' job
   it('should process send job correctly', async () => {
     const jobData = {
       content: 'Hello world',
@@ -52,15 +55,19 @@ describe('MessageConsumer', () => {
       createdAt: new Date(),
     };
 
+    // Mock the Prisma service methods to return expected values
     (prismaService.user.findUniqueOrThrow as jest.Mock).mockResolvedValue(mockSender);
     (prismaService.message.create as jest.Mock).mockResolvedValue(mockSavedMessage);
 
+    // Call the process method with the job
     await messageConsumer.process(job);
 
+    // Verify user lookup was called with correct auth0Id
     expect(prismaService.user.findUniqueOrThrow).toHaveBeenCalledWith({
       where: { auth0Id: jobData.senderId },
     });
 
+    // Verify message creation was called with correct data
     expect(prismaService.message.create).toHaveBeenCalledWith({
       data: {
         content: jobData.content,
@@ -70,6 +77,7 @@ describe('MessageConsumer', () => {
       include: { sender: true },
     });
 
+    // Verify websocket emits newMessage event excluding the sender's socketId
     expect(websocketService.server.except).toHaveBeenCalledWith(jobData.socketId);
     expect(websocketService.server.emit).toHaveBeenCalledWith('newMessage', expect.objectContaining({
       conversationId: jobData.conversationId,
@@ -82,15 +90,17 @@ describe('MessageConsumer', () => {
     }));
   });
 
+  // Test that jobs with other names are ignored gracefully
   it('should ignore jobs with other names', async () => {
     const job = {
       name: 'other',
       data: {},
     } as Job<any, any, string>;
 
-    // Should not throw and do nothing
+    // Process should resolve without errors and do nothing
     await expect(messageConsumer.process(job)).resolves.toBeUndefined();
 
+    // None of the service methods should have been called
     expect(prismaService.user.findUniqueOrThrow).not.toHaveBeenCalled();
     expect(prismaService.message.create).not.toHaveBeenCalled();
     expect(websocketService.server.except).not.toHaveBeenCalled();

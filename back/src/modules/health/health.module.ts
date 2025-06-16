@@ -6,12 +6,13 @@ import { HealthConsumer } from './health.consumer';
 
 @Module({
   imports: [
-    // Connexion Redis déjà faite dans BullMqModule
+    // Register the BullMQ queue named 'health-check-queue'
+    // Redis connection is already handled in the BullMqModule globally
     BullModule.registerQueue({
       name: 'health-check-queue',
     }),
   ],
-  controllers: [HealthController],
-  providers: [HealthResolver, HealthConsumer], // si tu as un consumer
+  controllers: [HealthController], // Register the HealthController to handle HTTP requests
+  providers: [HealthResolver, HealthConsumer], // Register the GraphQL resolver and queue consumer
 })
 export class HealthModule {}

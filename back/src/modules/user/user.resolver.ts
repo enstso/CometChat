@@ -7,21 +7,24 @@ import { UserService } from './user.service';
 
 @Resolver(() => User)
 export class UserResolver {
-  // Cette route est sécurisée, accessible uniquement avec un token JWT valide
+  // Constructor injects the UserService for data access
+  // This resolver handles user-related GraphQL queries
   constructor(private readonly userService: UserService) {}
 
   @Query(() => [User])
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(GqlAuthGuard) // Protect this query with JWT authentication guard
   async searchUsers(
-    @Args('query') query: string,
-    @CurrentUser() currentUser: User,
+    @Args('query') query: string, // Search string passed as argument
+    @CurrentUser() currentUser: User, // Currently authenticated user injected
   ): Promise<User[]> {
+    // Calls the service to search users by username excluding current user
     return await this.userService.searchUsersByUsername(query, currentUser);
   }
 
   @Query(() => User)
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(GqlAuthGuard) // Protect this query with JWT authentication guard
   me(@CurrentUser() user: User) {
+    // Returns the current authenticated user info
     return user;
   }
 }
