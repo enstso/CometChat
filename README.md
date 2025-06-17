@@ -102,16 +102,17 @@ CometChat is a real-time chat application built with **NestJS** (backend), **Vit
 Create a `.env` file in `/back` with these variables:
 
 ```env
-DATABASE_URL=postgresql://postgres:changeme@localhost:5432/cometChatDb
-REDIS_HOST=redis
+DATABASE_URL="postgresql://postgres:changeme@localhost:5432/cometChatDb?schema=public"
+REDIS_HOST=localhost
 REDIS_PORT=6379
 NODE_ENV=development
-FRONT_URL=http://localhost:5173
-AUTH0_DOMAIN=your-auth0-domain
-AUTH0_CLIENT_ID=your-auth0-client-id
-AUTH0_AUDIENCE=your-auth0-audience
-JWT_SECRET=your-jwt-secret
-PORT=3000
+JWT_SECRET=b93bb6644b605866b984e734b84c0ec48399cffad2f4d018def15cab5144319d
+AUTH0_DOMAIN=
+AUTH0_CLIENT_ID=
+AUTH0_AUDIENCE=
+AUTH0_CLIENT_SECRET=
+AUTH0_M_TO_M_CLIENT_ID=
+AUTH0_M_TO_M_CLIENT_SECRET=
 ```
 
 ### Frontend (`front/.env`)
