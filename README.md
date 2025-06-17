@@ -21,35 +21,37 @@ CometChat is a real-time chat application built with **NestJS** (backend), **Vit
 
 ## Features
 
-* JWT-based authentication with Auth0
-* Real-time messaging via WebSockets and BullMQ queue processing
-* User management and searching with GraphQL API
-* Conversation handling with pagination and relay-style connections
-* Health check endpoints
-* Redis for caching and job queue
-* PostgreSQL as the database, managed by Prisma ORM
-* Docker and Kubernetes manifests for containerized deployment
+* JWT-based authentication with Auth0  
+* Real-time messaging via WebSockets and BullMQ queue processing  
+* User management and searching with GraphQL API  
+* Conversation handling with pagination and relay-style connections  
+* Health check endpoints  
+* Redis for caching and job queue  
+* PostgreSQL as the database, managed by Prisma ORM  
+* Docker and Kubernetes manifests for containerized deployment  
 
 ---
 
 ## Project Structure
 
 ```
+
 /back       - NestJS backend
 /front      - React + Vite frontend
-/docker-compose.yml - Docker compose setup for Redis, PostgreSQL, Redis Commander, pgAdmin
+/docker-compose.yml - Docker Compose setup for Redis, PostgreSQL, Redis Commander, pgAdmin
 /k8s       - Kubernetes manifests for deployment and services
-```
+
+````
 
 ---
 
 ## Prerequisites
 
-* Docker & Docker Compose installed ([Docker docs](https://docs.docker.com/get-docker/))
-* Node.js (v18+ recommended)
-* npm or yarn package manager
-* Kubernetes cluster (for k8s deployment)
-* Access to Auth0 tenant for authentication
+* Docker & Docker Compose installed ([Docker docs](https://docs.docker.com/get-docker/))  
+* Node.js (v18+ recommended)  
+* npm or yarn package manager  
+* Kubernetes cluster (for k8s deployment)  
+* Access to Auth0 tenant for authentication  
 
 ---
 
@@ -60,7 +62,7 @@ CometChat is a real-time chat application built with **NestJS** (backend), **Vit
 ```bash
 git clone https://github.com/enstso/cometchat.git
 cd cometchat
-```
+````
 
 ### 2. Start dependent services with Docker Compose
 
@@ -112,7 +114,7 @@ AUTH0_DOMAIN=your-auth0-domain
 AUTH0_CLIENT_ID=your-auth0-client-id
 AUTH0_AUDIENCE=your-auth0-audience
 JWT_SECRET=your-jwt-secret
-PORT=3002
+PORT=3000
 ```
 
 ### Frontend (`front/.env`)
@@ -123,8 +125,8 @@ Create a `.env` file in `/front`:
 VITE_AUTH0_DOMAIN=your-auth0-domain
 VITE_AUTH0_CLIENT_ID=your-auth0-client-id
 VITE_AUTH0_AUDIENCE=your-auth0-audience
-VITE_API_GRAPHQL_URL=http://localhost:3002/graphql
-VITE_API_URL=http://localhost:3002
+VITE_API_GRAPHQL_URL=http://localhost:3000/graphql
+VITE_API_URL=http://localhost:3000
 VITE_AUTH0_SCOPE="openid profile email"
 NODE_ENV=development
 ```
@@ -149,7 +151,7 @@ cd front
 npm run dev
 ```
 
-Your frontend will be available on `http://localhost:5173` and backend on `http://localhost:3002`.
+Your frontend will be available on `http://localhost:5173` and backend on `http://localhost:3000`.
 
 ---
 
@@ -224,5 +226,23 @@ npm run test
   * Ingress resource for routing
   * ConfigMaps and Secrets for environment configs
 
+---
 
+## Architecture Overview (Mermaid Diagram)
 
+```mermaid
+graph TD
+  Frontend --> Backend[Backend ]
+  Backend --> Postgres[(PostgreSQL)]
+  Backend --> Redis[(Redis)]
+  Backend --> Auth0[(Auth0)]
+  Frontend --> Auth0
+  Backend --> Frontend
+
+  subgraph Docker Services
+    Postgres
+    Redis
+  end
+```
+
+---
