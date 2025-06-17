@@ -267,28 +267,77 @@ This bash script (`./repullimage.sh`) helps automate the process of pulling the 
 * Removes any existing `enstso/cometchat-back` or `enstso/cometchat-front` images
 * Pulls the latest versions of those images from Docker Hub
 
+
 ---
 
 ## 🚀 GitHub Actions CI/CD
 
-GitHub Actions are used to automate:
+GitHub Actions automate the entire CI/CD pipeline for CometChat, including:
 
-* Linting, building, and testing on every push
-* Docker image builds and pushes to Docker Hub
-* Optional deploy step to Kubernetes (if configured)
+* **Linting, building, and testing** the backend on every push
+* **Building and pushing** Docker images to Docker Hub
+* **(Optional)** Deployment to a remote Kubernetes cluster
 
-### Workflow Overview
+### 📁 Workflow File
 
-Located in `.github/workflows/deploy.yml`, it includes:
+The workflow is defined in `.github/workflows/deploy.yml`.
 
-* Checkout source code
-* Set up Node and Docker
-* Build and test frontend/backend
-* Build Docker images (`cometchat-front`, `cometchat-back`)
-* Push to Docker Hub
-* (Optional) Deploy to a Kubernetes cluster
+### ⚙️ What It Does
 
-You can trigger deployments on branch/tag or use manual dispatch via GitHub UI.
+#### On Trigger:
+
+* Triggered on **every branch push** (`push: branches: - '**'`)
+* Can also be **manually dispatched** via GitHub UI
+
+#### 1. 🧪 Test Job (`test`)
+
+* Checks out the code
+* Sets up **Node.js v22**
+* Installs backend dependencies using `npm ci`
+* Runs **Jest tests** for the backend (`/back`)
+
+#### 2. 🏗 Build & Push Job (`build-and-push`)
+
+* Depends on successful test job
+* Logs into Docker Hub using credentials from `secrets`
+* Builds **Docker images** for backend and frontend using Git SHA as tag
+* Tags both images as `latest`
+* Pushes both SHA-tagged and `latest` images to Docker Hub
+
+#### 3. 🚀 Deploy Job (`deploy`)
+
+* Runs only when pushing to `main` branch
+* Connects via SSH to a remote host (using a private SSH key stored in secrets)
+* Executes a remote `rePullImage.sh` script to pull latest images
+* Restarts backend and frontend Kubernetes deployments using `kubectl rollout restart`
+
+---
+
+### 🗝️ Secrets Required
+
+Set the following secrets in your GitHub repository:
+
+| Secret Name       | Purpose                                     |
+| ----------------- | ------------------------------------------- |
+| `DOCKERUSERNAME`  | Docker Hub username                         |
+| `DOCKERPASSWORD`  | Docker Hub password or access token         |
+| `SSH_PRIVATE_KEY` | Private SSH key to access deployment server |
+| `REMOTE_HOST`     | SSH address of the Kubernetes host          |
+
+---
+
+### ✅ Summary
+
+| Stage            | Description                                        |
+| ---------------- | -------------------------------------------------- |
+| `test`           | Installs and tests backend with Jest               |
+| `build-and-push` | Builds and pushes Docker images to Docker Hub      |
+| `deploy`         | Optionally deploys the app to a remote K8s cluster |
+
+> This setup ensures continuous integration and delivery with minimal manual intervention while remaining flexible and easy to extend.
+
+---
+
 
 ---
 
