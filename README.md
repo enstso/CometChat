@@ -94,6 +94,41 @@ CometChat is a real-time chat application built with **NestJS** (backend), **Vit
 
 ---
 
+## Environment Variables
+
+### Backend (`back/.env`)
+
+Create a `.env` file in `/back` with these variables:
+
+```env
+DATABASE_URL=postgresql://postgres:changeme@localhost:5432/cometChatDb
+REDIS_HOST=redis
+REDIS_PORT=6379
+NODE_ENV=development
+FRONT_URL=http://localhost:5173
+AUTH0_DOMAIN=your-auth0-domain
+AUTH0_CLIENT_ID=your-auth0-client-id
+AUTH0_AUDIENCE=your-auth0-audience
+JWT_SECRET=your-jwt-secret
+PORT=3000
+```
+
+### Frontend (`front/.env`)
+
+Create a `.env` file in `/front`:
+
+```env
+VITE_AUTH0_DOMAIN=your-auth0-domain
+VITE_AUTH0_CLIENT_ID=your-auth0-client-id
+VITE_AUTH0_AUDIENCE=your-auth0-audience
+VITE_API_GRAPHQL_URL=http://localhost:3000/graphql
+VITE_API_URL=http://localhost:3000
+VITE_AUTH0_SCOPE="openid profile email"
+NODE_ENV=development
+```
+
+---
+
 ## Installation
 
 ### 1. Clone the repo
@@ -137,41 +172,6 @@ npm run generate          # generate GraphQL types & code (if applicable)
 
 ---
 
-## Environment Variables
-
-### Backend (`back/.env`)
-
-Create a `.env` file in `/back` with these variables:
-
-```env
-DATABASE_URL=postgresql://postgres:changeme@localhost:5432/cometChatDb
-REDIS_HOST=redis
-REDIS_PORT=6379
-NODE_ENV=development
-FRONT_URL=http://localhost:5173
-AUTH0_DOMAIN=your-auth0-domain
-AUTH0_CLIENT_ID=your-auth0-client-id
-AUTH0_AUDIENCE=your-auth0-audience
-JWT_SECRET=your-jwt-secret
-PORT=3000
-```
-
-### Frontend (`front/.env`)
-
-Create a `.env` file in `/front`:
-
-```env
-VITE_AUTH0_DOMAIN=your-auth0-domain
-VITE_AUTH0_CLIENT_ID=your-auth0-client-id
-VITE_AUTH0_AUDIENCE=your-auth0-audience
-VITE_API_GRAPHQL_URL=http://localhost:3000/graphql
-VITE_API_URL=http://localhost:3000
-VITE_AUTH0_SCOPE="openid profile email"
-NODE_ENV=development
-```
-
----
-
 ## Running Locally
 
 After installing dependencies and setting up `.env` files:
@@ -191,18 +191,6 @@ npm run dev
 ```
 
 Your frontend will be available on `http://localhost:5173` and backend on `http://localhost:3000`.
-
----
-
-## Running with Docker
-
-Your `docker-compose.yml` starts Redis and PostgreSQL services.
-
-To build and run backend and frontend in Docker (optional, uncomment their sections in your docker-compose.yml), run:
-
-```bash
-docker-compose up -d --build
-```
 
 ---
 
