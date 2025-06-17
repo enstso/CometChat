@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useMutation } from "@apollo/client";
+import { REGISTER_USER } from "../../services/requestsGql";
 import Input from "../ui/Input";
 import Button from "../ui/Button";
 
@@ -6,16 +9,47 @@ const FormRegister = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [registerUser, { loading }] = useMutation(REGISTER_USER);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg("");
+    setSuccessMsg("");
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      setErrorMsg("Passwords do not match");
       return;
     }
 
-    console.log("Registering:", { email, password });
+    try {
+      const { data } = await registerUser({
+        variables: {
+          input: {
+            email,
+            password,
+          },
+        },
+      });
+
+      if (data?.registerUser?.success) {
+        setSuccessMsg("User successfully registered!");
+        setTimeout(() => {
+          navigate("/login");
+        }, 1500); 
+      } else {
+        setErrorMsg(data?.registerUser?.message || "Registration failed");
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setErrorMsg(err.message);
+      } else {
+        setErrorMsg("An unexpected error occurred");
+      }
+    }
   };
 
   return (
@@ -55,11 +89,15 @@ const FormRegister = () => {
           />
         </div>
 
+        {errorMsg && <p className="text-red-600 text-sm">{errorMsg}</p>}
+        {successMsg && <p className="text-green-600 text-sm">{successMsg}</p>}
+
         <Button
           type="submit"
           className="w-full py-3 font-semibold bg-purple-600 hover:bg-purple-700 transition duration-300"
+          disabled={loading}
         >
-          Sign Up
+          {loading ? "Signing up..." : "Sign Up"}
         </Button>
 
         <p className="text-center text-sm text-gray-600">

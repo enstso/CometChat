@@ -12,17 +12,23 @@ import { ConversationConnection } from './dto/conversation-relay';
 export class ConversationResolver {
   constructor(private readonly conversationService: ConversationService) {}
 
+  // GraphQL mutation to create a new conversation
   @Mutation(() => Conversation)
   async createConversation(@Args('input') input: CreateConversationInput) {
     return await this.conversationService.create(input);
   }
 
+  // Protect this query with authentication guard
   @UseGuards(GqlAuthGuard)
+  // GraphQL query to fetch paginated conversations of the current authenticated user
   @Query(() => ConversationConnection)
   async getUserConversations(
+    // Retrieve current user information from context
     @CurrentUser() user: { id: string },
+    // Receive pagination arguments for conversations
     @Args() conversationPaginationArgs: ConversationPaginationArgs,
   ) {
+    // Delegate fetching paginated conversations to the service layer
     return await this.conversationService.paginateUserConversations(
       user.id,
       conversationPaginationArgs,

@@ -3,15 +3,17 @@ import { BullModule } from '@nestjs/bullmq';
 import { HealthController } from './health.controller';
 import { HealthResolver } from './health.resolver';
 import { HealthConsumer } from './health.consumer';
+import { HealthService } from './health.service';
 
 @Module({
   imports: [
-    // Connexion Redis déjà faite dans BullMqModule
+    // Register the BullMQ queue named 'health-check-queue'
+    // Redis connection is already handled in the BullMqModule globally
     BullModule.registerQueue({
       name: 'health-check-queue',
     }),
   ],
-  controllers: [HealthController],
-  providers: [HealthResolver, HealthConsumer], // si tu as un consumer
+  controllers: [HealthController], // Register the HealthController to handle HTTP requests
+  providers: [HealthResolver, HealthConsumer, HealthService], // Register the GraphQL resolver and queue consumer
 })
 export class HealthModule {}

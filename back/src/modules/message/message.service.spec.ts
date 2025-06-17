@@ -4,23 +4,21 @@ import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 import { SendMessageInput } from './dto/send-message.input';
 import { MessageConnection } from './dto/message-relay';
-import { getQueueToken } from '@nestjs/bull'; // <-- CORRECTION IMPORTANTE
+import { getQueueToken } from '@nestjs/bullmq';
 
 describe('MessageService', () => {
   let service: MessageService;
-  let queue: Queue;
+  let queue: Queue; // ✅ typage explicite
   let prisma: PrismaService;
+
+  const queueMock: Partial<Queue> = {
+    add: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MessageService,
-        {
-          provide: getQueueToken('message-queue'), // <-- CORRECTION ICI
-          useValue: {
-            add: jest.fn(),
-          },
-        },
         {
           provide: PrismaService,
           useValue: {
@@ -29,11 +27,15 @@ describe('MessageService', () => {
             },
           },
         },
+        {
+          provide: getQueueToken('message-queue'),
+          useValue: queueMock,
+        },
       ],
     }).compile();
 
     service = module.get<MessageService>(MessageService);
-    queue = module.get<Queue>(getQueueToken('message-queue')); // <-- ET ICI
+    queue = module.get<Queue>(getQueueToken('message-queue')); // ✅ récupération typée
     prisma = module.get<PrismaService>(PrismaService);
   });
 
@@ -76,7 +78,7 @@ describe('MessageService', () => {
   describe('sendMessage', () => {
     it('should add job to queue and return job info', async () => {
       const mockJob = { id: 'job123' };
-      (queue.add as jest.Mock).mockResolvedValue(mockJob);
+      (queue.add as jest.Mock).mockResolvedValue(mockJob); // ✅ queue est bien typée
 
       const input: SendMessageInput = {
         conversationId: 'conv1',
@@ -88,7 +90,7 @@ describe('MessageService', () => {
 
       expect(queue.add).toHaveBeenCalledWith('send', input);
       expect(result).toEqual({
-        result: 'Message en file d’attente',
+        result: 'Message in queue',
         jobId: 'job123',
       });
     });

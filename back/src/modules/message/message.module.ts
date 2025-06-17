@@ -7,12 +7,14 @@ import { WebsocketModule } from '../websocket/websocket.module';
 
 @Module({
   imports: [
-    // Connexion Redis déjà faite dans BullMqModule
+    // Register the message queue with BullMQ (Redis connection handled internally)
     BullModule.registerQueue({
       name: 'message-queue',
     }),
+    // Import the Websocket module to enable real-time communication
     WebsocketModule,
   ],
+  // Provide the resolver, service, and consumer for messages
   providers: [MessageResolver, MessageService, MessageConsumer],
 })
 export class MessageModule {}

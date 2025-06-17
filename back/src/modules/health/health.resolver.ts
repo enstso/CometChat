@@ -1,11 +1,12 @@
 import { Query, Resolver } from '@nestjs/graphql';
 import { HealthCheckResponse } from './dto/health-check-response';
+import { HealthService } from './health.service';
 
 @Resolver()
 export class HealthResolver {
-  // This resolver can be expanded with more health-related queries or mutations in the future.
+  constructor(private readonly healthService: HealthService) {}
   @Query(() => HealthCheckResponse)
   healthCheck(): HealthCheckResponse {
-    return { result: 'OK' };
+    return this.healthService.healthCheck();
   }
 }

@@ -1,13 +1,14 @@
 import { ArgsType, Field, Int, ID } from '@nestjs/graphql';
 
 @ArgsType()
+// Defines the arguments accepted for paginating messages
 export class MessagePaginationArgs {
   @Field(() => ID)
-  conversationId: string;
+  conversationId: string; // ID of the conversation to fetch messages from
 
   @Field(() => Int, { defaultValue: 20 })
-  limit: number;
+  limit: number; // Number of messages to fetch per request (default is 20)
 
   @Field({ nullable: true })
-  cursor?: string; // ID du message (ou createdAt si tu veux baser sur le timestamp)
+  cursor?: string; // Optional cursor for pagination (message ID or timestamp)
 }

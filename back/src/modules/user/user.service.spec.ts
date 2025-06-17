@@ -5,7 +5,6 @@ import { UnauthorizedException, NotFoundException } from '@nestjs/common';
 
 describe('UserService', () => {
   let service: UserService;
-  let prisma: PrismaService;
 
   const mockUser = {
     id: '1',
@@ -31,7 +30,6 @@ describe('UserService', () => {
     }).compile();
 
     service = module.get<UserService>(UserService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -88,7 +86,9 @@ describe('UserService', () => {
       const result = await service.findById('1');
 
       expect(result).toEqual(mockUser);
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
     });
 
     it('should throw NotFoundException if user not found', async () => {
@@ -101,7 +101,12 @@ describe('UserService', () => {
   describe('searchUsersByUsername', () => {
     it('should return users matching username', async () => {
       const users = [
-        { id: '2', username: 'test2', email: 't2@example.com', auth0Id: 'auth0|2' },
+        {
+          id: '2',
+          username: 'test2',
+          email: 't2@example.com',
+          auth0Id: 'auth0|2',
+        },
       ];
 
       mockPrisma.user.findMany.mockResolvedValue(users);

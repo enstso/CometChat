@@ -6,7 +6,9 @@ import { ConversationPaginationArgs } from './dto/conversation.args';
 
 describe('ConversationResolver', () => {
   let resolver: ConversationResolver;
-  let service: ConversationService;
+
+  const mockCreate = jest.fn();
+  const mockPaginate = jest.fn();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -15,19 +17,18 @@ describe('ConversationResolver', () => {
         {
           provide: ConversationService,
           useValue: {
-            create: jest.fn(),
-            paginateUserConversations: jest.fn(),
+            create: mockCreate,
+            paginateUserConversations: mockPaginate,
           },
         },
       ],
     }).compile();
 
     resolver = module.get<ConversationResolver>(ConversationResolver);
-    service = module.get<ConversationService>(ConversationService);
   });
 
-  it('should be defined', () => {
-    expect(resolver).toBeDefined();
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should call conversationService.create with input', async () => {
@@ -38,27 +39,24 @@ describe('ConversationResolver', () => {
     };
 
     const expectedResult = { id: 'conv1', title: input.title };
-    jest.spyOn(service, 'create').mockResolvedValue(expectedResult as any);
+    mockCreate.mockResolvedValue(expectedResult);
 
     const result = await resolver.createConversation(input);
+
     expect(result).toEqual(expectedResult);
-    expect(service.create).toHaveBeenCalledWith(input);
+    expect(mockCreate).toHaveBeenCalledWith(input);
   });
 
   it('should call paginateUserConversations with user id and args', async () => {
-    const user = { id: 'user123' };
+    const user: { id: string } = { id: 'user123' };
     const args: ConversationPaginationArgs = { limit: 10 };
     const expectedConnection = { edges: [], pageInfo: {} };
 
-    jest
-      .spyOn(service, 'paginateUserConversations')
-      .mockResolvedValue(expectedConnection as any);
+    mockPaginate.mockResolvedValue(expectedConnection);
 
     const result = await resolver.getUserConversations(user, args);
+
     expect(result).toEqual(expectedConnection);
-    expect(service.paginateUserConversations).toHaveBeenCalledWith(
-      user.id,
-      args,
-    );
+    expect(mockPaginate).toHaveBeenCalledWith(user.id, args);
   });
 });

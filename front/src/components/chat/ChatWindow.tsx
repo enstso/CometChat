@@ -16,32 +16,46 @@ export default function ChatWindow({
   selectedConversation,
   title,
 }: ChatWindowType) {
+  // State for storing messages in the current conversation
   const [messages, setMessages] = useState<MessageType[]>([]);
+  // Loading state for fetching messages
   const [loadingMessages, setLoadingMessages] = useState(false);
+  // Controlled input for the message text
   const [messageText, setMessageText] = useState("");
+  // Whether there are more messages to load from the server
   const [hasMore, setHasMore] = useState(true);
+  // Cursor for pagination to fetch older messages
   const [cursor, setCursor] = useState<string | null>(null);
+  // Flag to show indicator for new incoming messages when scrolled up
   const [newMessageIndicator, setNewMessageIndicator] = useState(false);
 
+  // Get current authenticated user info from Auth0
   const { user: currentUser } = useAuth0();
+  // Apollo client instance to query data
   const client = useApolloClient();
+  // Apollo mutation hook to send messages
   const [sendMessage] = useMutation(SEND_MESSAGE);
 
+  // Ref to the div that contains the message list (for scrolling)
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  // Ref to prevent multiple concurrent loads of older messages
   const loadingMoreRef = useRef(false);
 
+  // Check if the user is scrolled near the bottom of the messages container
   const isScrolledToBottom = () => {
     if (!messagesContainerRef.current) return false;
     const el = messagesContainerRef.current;
     return el.scrollHeight - el.scrollTop - el.clientHeight < 100;
   };
 
+  // Scroll the messages container to the bottom
   const scrollToBottom = () => {
     if (!messagesContainerRef.current) return;
     messagesContainerRef.current.scrollTop =
       messagesContainerRef.current.scrollHeight;
   };
 
+  // Load initial batch of messages when a conversation is selected or user changes
   const loadInitialMessages = useCallback(async () => {
     if (!selectedConversation || !currentUser) return;
 
@@ -50,6 +64,7 @@ export default function ChatWindow({
     setCursor(null);
 
     try {
+      // Query the server for messages of the selected conversation, no-cache to avoid stale data
       const { data } = await client.query({
         query: GET_MESSAGES,
         variables: {
@@ -60,6 +75,7 @@ export default function ChatWindow({
         fetchPolicy: "no-cache",
       });
 
+      // Map the fetched messages to the shape used by the UI
       const fetchedMessages = data.getMessages.edges.map(
         (edge: MessageEdge) => ({
           id: edge.node.id,
@@ -70,9 +86,11 @@ export default function ChatWindow({
         })
       );
 
+      // Reverse to display messages in chronological order
       const reversedMessages = fetchedMessages.reverse();
       setMessages(reversedMessages);
 
+      // Update pagination info
       if (data.getMessages.pageInfo.hasPreviousPage) {
         setHasMore(true);
         setCursor(data.getMessages.pageInfo.endCursor);
@@ -81,6 +99,7 @@ export default function ChatWindow({
         setCursor(null);
       }
 
+      // Scroll to bottom shortly after messages load
       setTimeout(() => {
         if (messagesContainerRef.current) {
           messagesContainerRef.current.scrollTop =
@@ -94,11 +113,12 @@ export default function ChatWindow({
     setLoadingMessages(false);
   }, [selectedConversation, currentUser, client]);
 
+  // Reload initial messages whenever selected conversation or user changes
   useEffect(() => {
     loadInitialMessages();
   }, [loadInitialMessages]);
 
-  // Load more messages when user scrolls near top
+  // Function to load older messages when user scrolls near the top
   const loadMoreMessages = async () => {
     if (!hasMore || loadingMoreRef.current || !selectedConversation || !cursor)
       return;
@@ -112,6 +132,7 @@ export default function ChatWindow({
 
       const oldScrollHeight = scrollContainer.scrollHeight;
 
+      // Query the server for older messages before the current cursor
       const { data } = await client.query({
         query: GET_MESSAGES,
         variables: {
@@ -132,9 +153,11 @@ export default function ChatWindow({
         })
       );
 
+      // Reverse messages and prepend them to current messages
       const reversedMessages = fetchedMessages.reverse();
       setMessages((prev) => [...reversedMessages, ...prev]);
 
+      // Update pagination cursor and hasMore flag
       if (data.getMessages.pageInfo.hasPreviousPage) {
         setCursor(data.getMessages.pageInfo.endCursor);
       } else {
@@ -142,7 +165,7 @@ export default function ChatWindow({
         setCursor(null);
       }
 
-      // Maintain scroll position after loading
+      // Maintain scroll position after prepending messages to avoid jump
       setTimeout(() => {
         if (scrollContainer) {
           const newScrollHeight = scrollContainer.scrollHeight;
@@ -157,16 +180,18 @@ export default function ChatWindow({
     loadingMoreRef.current = false;
   };
 
+  // Handle scroll event to detect if user scrolled near the top to load more messages
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (e.currentTarget.scrollTop < 50) {
       loadMoreMessages();
     }
   };
 
-  // Optimistic UI for sending messages
+  // Optimistic UI: handle sending a message, add it immediately to UI, then send to server
   const handleSendMessage = async () => {
     if (!messageText.trim() || !selectedConversation || !currentUser) return;
 
+    // Create a temporary message object for immediate UI update
     const tempMessage: MessageType = {
       id: "temp-" + Date.now(),
       content: messageText,
@@ -180,10 +205,12 @@ export default function ChatWindow({
       conversationId: selectedConversation,
     };
 
+    // Add the temp message to the messages list
     setMessages((prev) => [...prev, tempMessage]);
+    // Clear the input field
     setMessageText("");
 
-    // Scroll to bottom after sending
+    // Scroll to bottom shortly after sending
     setTimeout(() => {
       if (messagesContainerRef.current) {
         messagesContainerRef.current.scrollTop =
@@ -192,6 +219,7 @@ export default function ChatWindow({
     }, 50);
 
     try {
+      // Send message to backend through mutation and include current socket ID
       const socketId = socket.id;
       await sendMessage({
         variables: {
@@ -208,41 +236,52 @@ export default function ChatWindow({
     }
   };
 
+  // Effect to listen for incoming messages via websocket
   useEffect(() => {
     if (!selectedConversation || !currentUser) return;
 
+    // Handler for new messages received from socket server
     const handleIncomingMessage = (msg: MessageType) => {
+      // Ignore messages from other conversations
       if (msg.conversationId !== selectedConversation) return;
 
-      // Ne traite pas les messages que j'ai envoyés moi-même
+      // Ignore messages sent by the current user
       if (msg.sender.username === currentUser.nickname) return;
 
+      // Ignore duplicate messages already in state
       const alreadyExists = messages.some((m) => m.id === msg.id);
       if (alreadyExists) return;
 
+      // Mark message as not sent by current user
       const fromMe = false;
       setMessages((prev) => [...prev, { ...msg, fromMe }]);
 
+      // If user is scrolled near bottom, scroll to show new message
       if (isScrolledToBottom()) {
         setTimeout(() => {
           scrollToBottom();
           setNewMessageIndicator(false);
         }, 50);
       } else {
+        // Otherwise show new message indicator button
         setNewMessageIndicator(true);
       }
     };
 
+    // Join the socket room for the selected conversation
     socket.emit("join", selectedConversation);
+    // Remove previous listener to avoid duplicates
     socket.off("newMessage", handleIncomingMessage);
-
+    // Listen for new messages on socket
     socket.on("newMessage", handleIncomingMessage);
 
+    // Cleanup listener on unmount or dependencies change
     return () => {
       socket.off("newMessage", handleIncomingMessage);
     };
   }, [selectedConversation, messages, currentUser]);
 
+  // Scroll to bottom and hide new message indicator when indicator clicked
   const handleNewMessageClick = () => {
     scrollToBottom();
     setNewMessageIndicator(false);
@@ -253,6 +292,8 @@ export default function ChatWindow({
       <div className="border-b p-4 font-bold text-lg bg-gray-50">
         {selectedConversation !== null ? title : "Select a conversation"}
       </div>
+
+      {/* Messages container with scroll and max height */}
       <div
         className="flex-1 overflow-y-auto p-4 flex flex-col gap-2"
         ref={messagesContainerRef}
@@ -278,6 +319,7 @@ export default function ChatWindow({
         ))}
       </div>
 
+      {/* New message indicator button */}
       {newMessageIndicator && (
         <button
           onClick={handleNewMessageClick}
@@ -301,6 +343,7 @@ export default function ChatWindow({
         </button>
       )}
 
+      {/* Input and send button */}
       {selectedConversation !== null && (
         <div className="p-4 border-t flex gap-2 bg-gray-50">
           <Input
