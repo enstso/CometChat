@@ -35,11 +35,50 @@ CometChat is a real-time chat application built with **NestJS** (backend), **Vit
 ## Project Structure
 
 ```
-
-/back       - NestJS backend
-/front      - React + Vite frontend
-/docker-compose.yml - Docker Compose setup for Redis, PostgreSQL, Redis Commander, pgAdmin
-/k8s       - Kubernetes manifests for deployment and services
+/cometchat
+│
+├── /back                     # Backend application (NestJS)
+│   ├── /modules              # Feature-based modules folder
+│   │   ├── /src              # Source code for each backend module
+│   │   │   ├── /user         # User management (resolvers, services)
+│   │   │   ├── /health       # Health check endpoints
+│   │   │   ├── /auth         # Authentication logic (Auth0, JWT)
+│   │   │   ├── /bullmq       # BullMQ queues and background jobs
+│   │   │   ├── /message      # Messaging GraphQL resolvers and services
+│   │   │   ├── /conversation # Conversation logic and pagination
+│   │   │   ├── /prisma       # Prisma client setup and database access
+│   │   │   ├── /graphql      # GraphQL schema, types and helpers
+│   │   │   ├── /websocket    # WebSocket gateway and real-time logic
+│   │   ├── app.controller.ts # Main app controller
+│   │   ├── app.module.ts     # Main app module where modules are imported
+│   │   ├── app.resolver.ts   # Root GraphQL resolver
+│   │   ├── app.service.ts    # Core service layer
+│   │   ├── main.ts           # Application entry point
+│   │   ├── schema.gql        # GraphQL schema definition
+│   │   └── /test             # Backend tests
+│   ├── prisma                # Prisma schema and migrations
+│   ├── Dockerfile            # Dockerfile to containerize backend
+│   ├── .env.example          # Example environment variables for backend
+│   ├── package.json          # Backend dependencies and scripts
+│   └── README.md             # Backend-specific documentation
+├── /front                    # Frontend application (React + Vite)
+│   ├── /src                  # React source code
+│   │   ├── assets            # Images, fonts, and other static assets
+│   │   ├── components        # React components
+│   │   ├── gql               # GraphQL queries, mutations, fragments
+│   │   ├── services          # API service calls, auth logic, utils
+│   │   ├── types             # TypeScript types/interfaces
+│   │   ├── utils             # Utility functions/helpers
+│   │   ├── views             # Page-level components or views
+│   ├── /public               # Public static files (served directly)
+│   ├── Dockerfile            # Dockerfile to containerize frontend
+│   ├── nginx.conf            # Nginx config to serve built frontend
+│   ├── .env.example          # Example environment variables for frontend
+│   ├── package.json          # Frontend dependencies and scripts
+│   └── README.md             # Frontend-specific documentation
+├── docker-compose.yml        # Docker Compose config to run dependencies locally
+├── /k8s                     # Kubernetes manifests for deployment and services
+└── README.md                 # Root project README with overview and setup instructions
 
 ````
 
