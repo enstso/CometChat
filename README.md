@@ -1,43 +1,61 @@
-
-
 # CometChat
 
-CometChat is a real-time chat application built with **NestJS** (backend), **Vite + React** (frontend), using **GraphQL**, **Redis**, **PostgreSQL**, and **WebSocket** for live communication. The backend uses BullMQ for job queues and Prisma as ORM.
+CometChat is a real-time chat application built with **NestJS** (backend) and **Vite + React** (frontend), using **GraphQL**, **Redis**, **PostgreSQL**, and **WebSocket** for live communication. It leverages **BullMQ** for background processing and **Prisma** as ORM. Authentication is handled externally via **Auth0**.
 
 ---
 
 ## Table of Contents
 
-* [Features](#features)
-* [Project Structure](#project-structure)
-* [Prerequisites](#prerequisites)
-* [Installation](#installation)
-* [Environment Variables](#environment-variables)
-* [Running with Docker](#running-with-docker)
-* [Running Locally](#running-locally)
-* [Using Kubernetes](#using-kubernetes)
-* [Testing](#testing)
-* [Project Details](#project-details)
+- [Features](#features)
+- [Auth0 Integration](#auth0-integration)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Environment Variables](#environment-variables)
+- [Installation](#installation)
+- [Running Locally](#running-locally)
+- [Running with Docker](#running-with-docker)
+- [Using Kubernetes](#using-kubernetes)
+- [Testing](#testing)
+- [Project Details](#project-details)
+- [CI/CD](#github-actions-cicd)
+- [Architecture Overview](#architecture-overview)
 
 ---
 
 ## Features
 
-* JWT-based authentication with Auth0
-* Real-time messaging via WebSockets and BullMQ queue processing
-* User management and searching with GraphQL API
-* Conversation handling with pagination and relay-style connections
-* Health check endpoints
-* Redis for caching and job queue
-* PostgreSQL as the database, managed by Prisma ORM
-* Docker and Kubernetes manifests for containerized deployment
+- Authentication via Auth0 (SPA & M2M applications)
+- Real-time messaging with WebSockets and BullMQ
+- GraphQL API for user, message, and conversation management
+- Pagination with Relay-style connections
+- Health check endpoints
+- Redis for caching and queuing
+- PostgreSQL with Prisma ORM
+- Containerized with Docker & Kubernetes manifests
+
+---
+
+## Auth0 Integration
+
+Authentication is fully managed by [Auth0](https://auth0.com/). You must configure **two applications** in your Auth0 tenant:
+
+1. **Single Page Application (SPA)**  
+   - Used by the frontend (React) to authenticate users.
+   - Configure callback URLs, logout URLs, and allowed web origins (e.g., `http://localhost:5173`).
+
+2. **Machine-to-Machine (M2M)**  
+   - Used by the backend to securely call Auth0's Management API (e.g., token introspection).
+   - Authorize it to access the Management API with scopes like `read:users`.
+
+Ensure you update the required `.env` variables in both frontend and backend.
 
 ---
 
 ## Project Structure
 
 ```
-/cometchat
+
+cometchat
 │
 ├── /back                     # Backend application (NestJS)
 │   ├── /modules              # Feature-based modules folder
@@ -81,17 +99,20 @@ CometChat is a real-time chat application built with **NestJS** (backend), **Vit
 ├── docker-compose.yml        # Docker Compose config to run dependencies locally
 ├── /k8s                      # Kubernetes manifests for deployment and services
 └── README.md                 # Root project README with overview and setup instructions
-```
+
+
+
+````
 
 ---
 
 ## Prerequisites
 
-* Docker & Docker Compose installed ([Docker docs](https://docs.docker.com/get-docker/))
-* Node.js (v18+ recommended)
-* npm or yarn package manager
-* Kubernetes cluster (for k8s deployment)
-* Access to Auth0 tenant for authentication
+- Docker & Docker Compose
+- Node.js v22+
+- npm or yarn
+- Kubernetes cluster
+- Access to an Auth0 tenant
 
 ---
 
@@ -99,33 +120,29 @@ CometChat is a real-time chat application built with **NestJS** (backend), **Vit
 
 ### Backend (`back/.env`)
 
-Create a `.env` file in `/back` with these variables:
-
 ```env
 DATABASE_URL="postgresql://postgres:changeme@localhost:5432/cometChatDb?schema=public"
 REDIS_HOST=localhost
 REDIS_PORT=6379
 NODE_ENV=development
-JWT_SECRET=b93bb6644b605866b984e734b84c0ec48399cffad2f4d018def15cab5144319d
+
 AUTH0_DOMAIN=
-AUTH0_CLIENT_ID=
-AUTH0_AUDIENCE=
-AUTH0_CLIENT_SECRET=
-AUTH0_M_TO_M_CLIENT_ID=
-AUTH0_M_TO_M_CLIENT_SECRET=
-```
+AUTH0_CLIENT_ID=                    # SPA App Client ID
+AUTH0_AUDIENCE=                    # API identifier
+AUTH0_CLIENT_SECRET=               # SPA App Client Secret (optional)
+AUTH0_M_TO_M_CLIENT_ID=            # M2M App Client ID
+AUTH0_M_TO_M_CLIENT_SECRET=        # M2M App Client Secret
+````
 
 ### Frontend (`front/.env`)
 
-Create a `.env` file in `/front`:
-
 ```env
 VITE_AUTH0_DOMAIN=your-auth0-domain
-VITE_AUTH0_CLIENT_ID=your-auth0-client-id
-VITE_AUTH0_AUDIENCE=your-auth0-audience
+VITE_AUTH0_CLIENT_ID=your-spa-client-id
+VITE_AUTH0_AUDIENCE=your-api-audience
+VITE_AUTH0_SCOPE="openid profile email"
 VITE_API_GRAPHQL_URL=http://localhost:3000/graphql
 VITE_API_URL=http://localhost:3000
-VITE_AUTH0_SCOPE="openid profile email"
 NODE_ENV=development
 ```
 
@@ -133,29 +150,27 @@ NODE_ENV=development
 
 ## Installation
 
-### 1. Clone the repo
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/enstso/cometchat.git
 cd cometchat
 ```
 
-### 2. Start dependent services with Docker Compose
-
-This will start Redis, Redis Commander (UI), PostgreSQL, and pgAdmin:
+### 2. Start services with Docker Compose
 
 ```bash
 docker-compose up -d
 ```
 
-Check the services:
+Check:
 
-* Redis at `localhost:6379`
-* Redis Commander UI at `http://localhost:8081`
-* PostgreSQL at `localhost:5432`
-* pgAdmin at `http://localhost:5050` (default creds in `.env`)
+* Redis: `localhost:6379`
+* Redis Commander: `http://localhost:8081`
+* Postgres: `localhost:5432`
+* pgAdmin: `http://localhost:5050`
 
-### 3. Backend Setup (`/back`)
+### 3. Backend Setup
 
 ```bash
 cd back
@@ -164,7 +179,7 @@ npx prisma generate
 npx prisma db push
 ```
 
-### 4. Frontend Setup (`/front`)
+### 4. Frontend Setup
 
 ```bash
 cd ../front
@@ -175,8 +190,6 @@ npm run generate
 ---
 
 ## Running Locally
-
-After installing dependencies and setting up `.env` files:
 
 ### Backend
 
@@ -192,33 +205,47 @@ cd front
 npm run dev
 ```
 
-Frontend available at: `http://localhost:5173`
-Backend available at: `http://localhost:3000`
+Access the app at:
+
+* Frontend: `http://localhost:5173`
+* Backend: `http://localhost:3000`
+
+---
+
+## Running with Docker
+
+To run frontend and backend in containers:
+
+```bash
+docker-compose up --build
+```
+
+This runs Postgres, Redis, backend, frontend, Redis Commander, and pgAdmin.
 
 ---
 
 ## Using Kubernetes
 
-Manifests are provided for frontend, backend deployments, services, ingress, configmaps, and secrets.
-
 ### Steps:
 
-1. Customize all ConfigMaps and Secrets (`cometchat-back-configmap`, `cometchat-back-secret`, `cometchat-front-configmap`) with your values.
-2. Deploy to your cluster:
+1. Update the following manifests with your actual secrets and config:
+
+   * `cometchat-back-configmap`, `cometchat-back-secret`
+   * `cometchat-front-configmap`
+
+2. Apply manifests:
 
 ```bash
 kubectl apply -f k8s/
 ```
 
-3. The ingress resource manages routing to frontend and backend services.
+3. Ingress handles routing to services.
 
 ---
 
 ## Testing
 
-Backend unit tests use Jest.
-
-Run tests:
+Run unit tests for the backend:
 
 ```bash
 cd back
@@ -229,116 +256,58 @@ npm run test
 
 ## Project Details
 
-### Backend
+### Backend (NestJS)
 
-* NestJS modules separated by concern: Auth, User, Message, Conversation, Health, BullMQ queue management, Websocket gateway
-* Prisma ORM for database access
-* BullMQ for background job processing and queueing messages
-* JWT Auth guard for GraphQL API protection
-* Websocket server to manage real-time messaging and room joining
+* Modular architecture
+* JWT validation via Auth0
+* WebSocket gateway for messaging
+* Prisma ORM
+* BullMQ for background tasks
+* GraphQL resolvers (users, messages, conversations)
 
-### Frontend
+### Frontend (React + Vite)
 
-* React with Vite for fast development
-* GraphQL client generated from schema (codegen)
-* Uses Auth0 for authentication
-* Environment variables prefixed with `VITE_` for frontend exposure
+* GraphQL codegen for typed queries
+* Auth0 SDK for authentication
+* Custom hooks and service layer
+* Modern UI structure (components, views, utils)
 
-### Docker
+### Docker & Kubernetes
 
-* Redis, PostgreSQL, Redis Commander, and pgAdmin provided in `docker-compose.yml`
-* Optional Dockerfiles for frontend and backend to containerize apps
-
-### Kubernetes
-
-* Deployment with multiple replicas for scalability
-* Services exposing backend and frontend
-* Ingress resource for routing
-* ConfigMaps and Secrets for environment configs
+* Pre-configured Dockerfiles for backend & frontend
+* `docker-compose.yml` for local dev
+* Kubernetes manifests: deployments, services, ingress, secrets
 
 ---
 
-## 🔁 repullimage.sh Utility
+## GitHub Actions CI/CD
 
-This bash script (`./repullimage.sh`) helps automate the process of pulling the latest versions of your Docker images from Docker Hub.
+Automates the entire pipeline:
 
-### What It Does:
+### Workflow: `.github/workflows/deploy.yml`
 
-* Lists all local Docker images
-* Removes any existing `enstso/cometchat-back` or `enstso/cometchat-front` images
-* Pulls the latest versions of those images from Docker Hub
+#### 1. Test Job
 
+* Runs backend tests with Jest
 
----
+#### 2. Build & Push
 
-## 🚀 GitHub Actions CI/CD
+* Builds backend & frontend Docker images
+* Pushes to Docker Hub (SHA + `latest` tags)
 
-GitHub Actions automate the entire CI/CD pipeline for CometChat, including:
+#### 3. Deploy (main branch only)
 
-* **Linting, building, and testing** the backend on every push
-* **Building and pushing** Docker images to Docker Hub
-* **(Optional)** Deployment to a remote Kubernetes cluster
+* SSH to remote host
+* Pulls new images and restarts K8s deployments
 
-### 📁 Workflow File
+### Required Secrets
 
-The workflow is defined in `.github/workflows/deploy.yml`.
-
-### ⚙️ What It Does
-
-#### On Trigger:
-
-* Triggered on **every branch push** (`push: branches: - '**'`)
-* Can also be **manually dispatched** via GitHub UI
-
-#### 1. 🧪 Test Job (`test`)
-
-* Checks out the code
-* Sets up **Node.js v22**
-* Installs backend dependencies using `npm ci`
-* Runs **Jest tests** for the backend (`/back`)
-
-#### 2. 🏗 Build & Push Job (`build-and-push`)
-
-* Depends on successful test job
-* Logs into Docker Hub using credentials from `secrets`
-* Builds **Docker images** for backend and frontend using Git SHA as tag
-* Tags both images as `latest`
-* Pushes both SHA-tagged and `latest` images to Docker Hub
-
-#### 3. 🚀 Deploy Job (`deploy`)
-
-* Runs only when pushing to `main` branch
-* Connects via SSH to a remote host (using a private SSH key stored in secrets)
-* Executes a remote `rePullImage.sh` script to pull latest images
-* Restarts backend and frontend Kubernetes deployments using `kubectl rollout restart`
-
----
-
-### 🗝️ Secrets Required
-
-Set the following secrets in your GitHub repository:
-
-| Secret Name       | Purpose                                     |
+| Secret Name       | Description                                 |
 | ----------------- | ------------------------------------------- |
 | `DOCKERUSERNAME`  | Docker Hub username                         |
-| `DOCKERPASSWORD`  | Docker Hub password or access token         |
-| `SSH_PRIVATE_KEY` | Private SSH key to access deployment server |
+| `DOCKERPASSWORD`  | Docker Hub password or token                |
+| `SSH_PRIVATE_KEY` | SSH private key to connect to remote server |
 | `REMOTE_HOST`     | SSH address of the Kubernetes host          |
-
----
-
-### ✅ Summary
-
-| Stage            | Description                                        |
-| ---------------- | -------------------------------------------------- |
-| `test`           | Installs and tests backend with Jest               |
-| `build-and-push` | Builds and pushes Docker images to Docker Hub      |
-| `deploy`         | Optionally deploys the app to a remote K8s cluster |
-
-> This setup ensures continuous integration and delivery with minimal manual intervention while remaining flexible and easy to extend.
-
----
-
 
 ---
 
@@ -347,33 +316,58 @@ Set the following secrets in your GitHub repository:
 ```mermaid
 graph TD
 
-subgraph subGraph0["Frontend Pod"]
-  Frontend["Frontend"]
+subgraph Frontend_Pod
+  FE[Frontend - React]
 end
 
-subgraph subGraph1["Backend Pod"]
-  Backend["Backend"]
+subgraph Backend_Pod
+  BE[Backend - NestJS]
 end
 
-subgraph subGraph2["Database Pod"]
-  Postgres[("PostgreSQL")]
+subgraph Auth0_Cloud
+  Auth0SPA[Auth0 - SPA App]
+  Auth0M2M[Auth0 - M2M App]
 end
 
-subgraph subGraph3["Cache Pod"]
-  Redis[("Redis")]
+subgraph Database_Pod
+  DB[(PostgreSQL)]
 end
 
-subgraph subGraph4["Kubernetes Cluster"]
-  direction TB
-  subGraph0
-  subGraph1
-  subGraph2
-  subGraph3
-  Auth0[("Auth0")]
+subgraph Cache_Pod
+  Cache[(Redis)]
 end
 
-Frontend --> Backend & Auth0
-Backend --> Postgres & Redis & Auth0 & Frontend
+FE --> BE
+FE --> Auth0SPA
+BE --> Auth0SPA
+BE --> Auth0M2M
+BE --> DB
+BE --> Cache
+
 ```
 
 ---
+
+## 🛠 repullimage.sh
+
+Script to automate Docker image refresh in production:
+
+* Removes old backend/frontend images
+* Pulls latest ones from Docker Hub
+
+Usage:
+
+```bash
+./repullimage.sh
+```
+
+---
+
+## ✅ Summary
+
+| Stage            | Description                                    |
+| ---------------- | ---------------------------------------------- |
+| `test`           | Runs Jest tests for backend                    |
+| `build-and-push` | Builds Docker images and pushes to Docker Hub  |
+| `deploy`         | SSHs to remote server and restarts deployments |
+
