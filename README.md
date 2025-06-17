@@ -1,3 +1,5 @@
+
+
 # CometChat
 
 CometChat is a real-time chat application built with **NestJS** (backend), **Vite + React** (frontend), using **GraphQL**, **Redis**, **PostgreSQL**, and **WebSocket** for live communication. The backend uses BullMQ for job queues and Prisma as ORM.
@@ -21,14 +23,14 @@ CometChat is a real-time chat application built with **NestJS** (backend), **Vit
 
 ## Features
 
-* JWT-based authentication with Auth0  
-* Real-time messaging via WebSockets and BullMQ queue processing  
-* User management and searching with GraphQL API  
-* Conversation handling with pagination and relay-style connections  
-* Health check endpoints  
-* Redis for caching and job queue  
-* PostgreSQL as the database, managed by Prisma ORM  
-* Docker and Kubernetes manifests for containerized deployment  
+* JWT-based authentication with Auth0
+* Real-time messaging via WebSockets and BullMQ queue processing
+* User management and searching with GraphQL API
+* Conversation handling with pagination and relay-style connections
+* Health check endpoints
+* Redis for caching and job queue
+* PostgreSQL as the database, managed by Prisma ORM
+* Docker and Kubernetes manifests for containerized deployment
 
 ---
 
@@ -77,20 +79,19 @@ CometChat is a real-time chat application built with **NestJS** (backend), **Vit
 │   ├── package.json          # Frontend dependencies and scripts
 │   └── README.md             # Frontend-specific documentation
 ├── docker-compose.yml        # Docker Compose config to run dependencies locally
-├── /k8s                     # Kubernetes manifests for deployment and services
+├── /k8s                      # Kubernetes manifests for deployment and services
 └── README.md                 # Root project README with overview and setup instructions
-
-````
+```
 
 ---
 
 ## Prerequisites
 
-* Docker & Docker Compose installed ([Docker docs](https://docs.docker.com/get-docker/))  
-* Node.js (v18+ recommended)  
-* npm or yarn package manager  
-* Kubernetes cluster (for k8s deployment)  
-* Access to Auth0 tenant for authentication  
+* Docker & Docker Compose installed ([Docker docs](https://docs.docker.com/get-docker/))
+* Node.js (v18+ recommended)
+* npm or yarn package manager
+* Kubernetes cluster (for k8s deployment)
+* Access to Auth0 tenant for authentication
 
 ---
 
@@ -136,7 +137,7 @@ NODE_ENV=development
 ```bash
 git clone https://github.com/enstso/cometchat.git
 cd cometchat
-````
+```
 
 ### 2. Start dependent services with Docker Compose
 
@@ -158,8 +159,8 @@ Check the services:
 ```bash
 cd back
 npm install
-npx prisma generate       # generate Prisma client
-npx prisma db push        # push Prisma schema to DB
+npx prisma generate
+npx prisma db push
 ```
 
 ### 4. Frontend Setup (`/front`)
@@ -167,7 +168,7 @@ npx prisma db push        # push Prisma schema to DB
 ```bash
 cd ../front
 npm install
-npm run generate          # generate GraphQL types & code (if applicable)
+npm run generate
 ```
 
 ---
@@ -190,7 +191,8 @@ cd front
 npm run dev
 ```
 
-Your frontend will be available on `http://localhost:5173` and backend on `http://localhost:3000`.
+Frontend available at: `http://localhost:5173`
+Backend available at: `http://localhost:3000`
 
 ---
 
@@ -226,32 +228,67 @@ npm run test
 
 ## Project Details
 
-* **Backend**:
+### Backend
 
-  * NestJS modules separated by concern: Auth, User, Message, Conversation, Health, BullMQ queue management, Websocket gateway
-  * Prisma ORM for database access
-  * BullMQ for background job processing and queueing messages
-  * JWT Auth guard for GraphQL API protection
-  * Websocket server to manage real-time messaging and room joining
+* NestJS modules separated by concern: Auth, User, Message, Conversation, Health, BullMQ queue management, Websocket gateway
+* Prisma ORM for database access
+* BullMQ for background job processing and queueing messages
+* JWT Auth guard for GraphQL API protection
+* Websocket server to manage real-time messaging and room joining
 
-* **Frontend**:
+### Frontend
 
-  * React with Vite for fast development
-  * GraphQL client generated from schema (codegen)
-  * Uses Auth0 for authentication
-  * Environment variables prefixed with `VITE_` for frontend exposure
+* React with Vite for fast development
+* GraphQL client generated from schema (codegen)
+* Uses Auth0 for authentication
+* Environment variables prefixed with `VITE_` for frontend exposure
 
-* **Docker**:
+### Docker
 
-  * Redis, PostgreSQL, Redis Commander, and pgAdmin provided in `docker-compose.yml`
-  * Optional Dockerfiles for frontend and backend to containerize apps
+* Redis, PostgreSQL, Redis Commander, and pgAdmin provided in `docker-compose.yml`
+* Optional Dockerfiles for frontend and backend to containerize apps
 
-* **Kubernetes**:
+### Kubernetes
 
-  * Deployment with multiple replicas for scalability
-  * Services exposing backend and frontend
-  * Ingress resource for routing
-  * ConfigMaps and Secrets for environment configs
+* Deployment with multiple replicas for scalability
+* Services exposing backend and frontend
+* Ingress resource for routing
+* ConfigMaps and Secrets for environment configs
+
+---
+
+## 🔁 repullimage.sh Utility
+
+This bash script (`./repullimage.sh`) helps automate the process of pulling the latest versions of your Docker images from Docker Hub.
+
+### What It Does:
+
+* Lists all local Docker images
+* Removes any existing `enstso/cometchat-back` or `enstso/cometchat-front` images
+* Pulls the latest versions of those images from Docker Hub
+
+---
+
+## 🚀 GitHub Actions CI/CD
+
+GitHub Actions are used to automate:
+
+* Linting, building, and testing on every push
+* Docker image builds and pushes to Docker Hub
+* Optional deploy step to Kubernetes (if configured)
+
+### Workflow Overview
+
+Located in `.github/workflows/deploy.yml`, it includes:
+
+* Checkout source code
+* Set up Node and Docker
+* Build and test frontend/backend
+* Build Docker images (`cometchat-front`, `cometchat-back`)
+* Push to Docker Hub
+* (Optional) Deploy to a Kubernetes cluster
+
+You can trigger deployments on branch/tag or use manual dispatch via GitHub UI.
 
 ---
 
@@ -259,30 +296,34 @@ npm run test
 
 ```mermaid
 graph TD
-  
- subgraph subGraph0["Frontend Pod"]
-        Frontend["Frontend"]
-  end
- subgraph subGraph1["Backend Pod"]
-        Backend["Backend"]
-  end
- subgraph subGraph2["Database Pod"]
-        Postgres[("PostgreSQL")]
-  end
- subgraph subGraph3["Cache Pod"]
-        Redis[("Redis")]
-  end
- subgraph subGraph4["Kubernetes Cluster"]
-    direction TB
-        subGraph0
-        subGraph1
-        subGraph2
-        subGraph3
-        Auth0[("Auth0")]
-  end
-    Frontend --> Backend & Auth0
-    Backend --> Postgres & Redis & Auth0 & Frontend
 
+subgraph subGraph0["Frontend Pod"]
+  Frontend["Frontend"]
+end
+
+subgraph subGraph1["Backend Pod"]
+  Backend["Backend"]
+end
+
+subgraph subGraph2["Database Pod"]
+  Postgres[("PostgreSQL")]
+end
+
+subgraph subGraph3["Cache Pod"]
+  Redis[("Redis")]
+end
+
+subgraph subGraph4["Kubernetes Cluster"]
+  direction TB
+  subGraph0
+  subGraph1
+  subGraph2
+  subGraph3
+  Auth0[("Auth0")]
+end
+
+Frontend --> Backend & Auth0
+Backend --> Postgres & Redis & Auth0 & Frontend
 ```
 
 ---
