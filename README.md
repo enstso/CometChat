@@ -232,17 +232,30 @@ npm run test
 
 ```mermaid
 graph TD
-  Frontend --> Backend[Backend ]
-  Backend --> Postgres[(PostgreSQL)]
-  Backend --> Redis[(Redis)]
-  Backend --> Auth0[(Auth0)]
-  Frontend --> Auth0
-  Backend --> Frontend
-
-  subgraph Docker Services
-    Postgres
-    Redis
+  
+ subgraph subGraph0["Frontend Pod"]
+        Frontend["Frontend"]
   end
+ subgraph subGraph1["Backend Pod"]
+        Backend["Backend"]
+  end
+ subgraph subGraph2["Database Pod"]
+        Postgres[("PostgreSQL")]
+  end
+ subgraph subGraph3["Cache Pod"]
+        Redis[("Redis")]
+  end
+ subgraph subGraph4["Kubernetes Cluster"]
+    direction TB
+        subGraph0
+        subGraph1
+        subGraph2
+        subGraph3
+        Auth0[("Auth0")]
+  end
+    Frontend --> Backend & Auth0
+    Backend --> Postgres & Redis & Auth0 & Frontend
+
 ```
 
 ---
