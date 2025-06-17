@@ -11,8 +11,8 @@ export class AuthService {
 
   async registerUser(input: RegisterAuth0User) {
     const domain = process.env.AUTH0_DOMAIN;
-    const clientId = process.env.AUTH0_CLIENT_ID;
-    const clientSecret = process.env.AUTH0_CLIENT_SECRET;
+    const clientId = process.env.AUTH0_M_TO_M_CLIENT_ID;
+    const clientSecret = process.env.AUTH0_M_TO_M_CLIENT_SECRET;
     const audience = `https://${domain}/api/v2/`;
 
     try {

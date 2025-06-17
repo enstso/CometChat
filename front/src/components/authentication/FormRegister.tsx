@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation } from "@apollo/client";
 import { REGISTER_USER } from "../../services/requestsGql";
 import Input from "../ui/Input";
@@ -12,6 +13,7 @@ const FormRegister = () => {
   const [successMsg, setSuccessMsg] = useState("");
 
   const [registerUser, { loading }] = useMutation(REGISTER_USER);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +37,9 @@ const FormRegister = () => {
 
       if (data?.registerUser?.success) {
         setSuccessMsg("User successfully registered!");
-        // Optionally redirect to login
+        setTimeout(() => {
+          navigate("/login");
+        }, 1500); 
       } else {
         setErrorMsg(data?.registerUser?.message || "Registration failed");
       }

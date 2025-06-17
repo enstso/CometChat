@@ -1,6 +1,7 @@
 // Import necessary hooks from Auth0 and React
 import { useAuth0 } from "@auth0/auth0-react";
 import { useState } from "react";
+import { Link } from 'react-router-dom'; // if you're using React Router
 import Spinner from "../components/ui/Spinner";
 
 // Define the Login component responsible for handling user login
@@ -63,6 +64,15 @@ export default function Login() {
           >
             Auth0
           </a>
+        </p>
+        <p className="mt-4 text-sm text-gray-700">
+          Don’t have an account?{" "}
+          <Link
+            to="/register"
+            className="text-blue-600 hover:underline font-medium"
+          >
+            Sign up here
+          </Link>
         </p>
       </div>
     </div>
