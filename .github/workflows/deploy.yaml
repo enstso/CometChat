@@ -66,12 +66,12 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H remote-host.com >> ~/.ssh/known_hosts
+          ssh-keyscan -H {{ secrets.REMOTE_HOSTNAME }} >> ~/.ssh/known_hosts
 
       - name: Run remote deployment script
         run: |
-          ssh -i ~/.ssh/id_ed25519 {{ secrets.REMOTE_HOST }} 'bash /home/cipher/personal/CometChat/rePullImage.sh'
-          ssh -i ~/.ssh/id_ed25519 {{ secrets.REMOTE_HOST }} '
+          ssh -i ~/.ssh/id_ed25519 {{ secrets.REMOTE_HOSTNAME }} 'bash /home/cipher/personal/CometChat/rePullImage.sh'
+          ssh -i ~/.ssh/id_ed25519 {{ secrets.REMOTE_HOSTNAME }} '
             kubectl rollout restart deployment cometchat-back
             kubectl rollout restart deployment cometchat-front
           '
