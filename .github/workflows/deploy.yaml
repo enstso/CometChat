@@ -74,7 +74,7 @@ jobs:
 
       - name: Run remote deployment script
         run: |
-          ssh -i ~/.ssh/id_ed25519 cipher@"$REMOTE_HOST" "bash '/home/cipher/personal/CometChat/rePullImage.sh'"
+          ssh -i ~/.ssh/id_ed25519 cipher@"$REMOTE_HOST" "bash '/home/cipher/personal/CometChat/k8s/rePullImage.sh'"
           ssh -i ~/.ssh/id_ed25519 cipher@"$REMOTE_HOST" '
             kubectl rollout restart deployment cometchat-back
             kubectl rollout restart deployment cometchat-front
