@@ -275,7 +275,7 @@ export default function ChatWindow({
     return () => {
       socket.off("newMessage", handleIncomingMessage);
     };
-  }, [selectedConversation, messages, currentUser]);
+  }, [selectedConversation, currentUser]);
 
   // Scroll to bottom and hide new message indicator when indicator clicked
   const handleNewMessageClick = () => {
