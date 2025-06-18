@@ -33,10 +33,19 @@ export class WebsocketService
 
   // Listen for 'message' events sent from clients
   @SubscribeMessage('message')
-  handleMessage(@MessageBody() message: string): void {
-    console.log(`Received message: ${message}`);
-    // Broadcast the received message to all connected clients
-    this.server.emit('message', message);
+  handleMessage(
+    @MessageBody() message: string,
+    @ConnectedSocket() client: Socket,
+    ack: (response: any) => void,
+  ): void {
+    try {
+      console.log(`Received message: ${message}`);
+      this.server.emit('message', message);
+      ack({ status: 'ok' });
+    } catch (error) {
+      console.error('Error handling message:', error);
+      ack({ status: 'error', error: error.message });
+    }
   }
 
   // Listen for 'join' events, where clients request to join a specific room
