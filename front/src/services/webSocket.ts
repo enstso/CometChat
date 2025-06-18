@@ -4,7 +4,15 @@ import { io } from "socket.io-client";
 import { useEffect } from "react";
 
 // Create and export a socket connection using the API URL from environment variables
-export const socket = io(import.meta.env.VITE_API_URL);
+const apiUrl = import.meta.env.VITE_API_URL;
+
+// Si l'URL contient "localhost", alors secure = false
+const isSecure = !apiUrl.includes("localhost");
+
+export const socket = io(apiUrl, {
+  transports: ['websocket'],
+  secure: isSecure,
+});
 
 // Component to join a socket.io room for a specific conversation
 export function SocketRoomJoin({ conversationId }: { conversationId: string | null }) {
