@@ -34,6 +34,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Create .env file for backend from secret
+      - name: Create backend .env file
+        run: echo "${{ secrets.BACK_ENV_FILE }}" > ./back/.env
+
+      # Create .env file for frontend from secret
+      - name: Create frontend .env file
+        run: echo "${{ secrets.FRONT_ENV_FILE }}" > ./front/.env
+
       - name: Log in to DockerHub
         run: echo "${{ secrets.DOCKERPASSWORD }}" | docker login -u "${{ secrets.DOCKERUSERNAME }}" --password-stdin
 
