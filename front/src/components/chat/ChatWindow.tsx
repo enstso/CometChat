@@ -242,6 +242,10 @@ export default function ChatWindow({
 
     // Handler for new messages received from socket server
     const handleIncomingMessage = (msg: MessageType) => {
+      console.log("d,kedk");
+      console.log(msg.conversationId);
+      console.log(msg.sender.username);
+
       // Ignore messages from other conversations
       if (msg.conversationId !== selectedConversation) return;
 
@@ -249,9 +253,12 @@ export default function ChatWindow({
       if (msg.sender.username === currentUser.nickname) return;
 
       // Ignore duplicate messages already in state
-      const alreadyExists = messages.some((m) => m.id === msg.id);
-      if (alreadyExists) return;
+      //const alreadyExists = messages.some((m) => m.id === msg.id);
+            console.log("dd1")
 
+      //if (alreadyExists) return;
+
+      console.log("ddaaa1")
       // Mark message as not sent by current user
       const fromMe = false;
       setMessages((prev) => [...prev, { ...msg, fromMe }]);

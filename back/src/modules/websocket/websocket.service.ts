@@ -52,4 +52,18 @@ export class WebsocketService
     // Notify other clients in the room that a new client has joined
     client.to(room).emit('joined', `Client ${client.id} joined room: ${room}`);
   }
+
+  // Listen for 'leave' events, where clients request to leave a specific room
+  @SubscribeMessage('leave')
+  async handleLeave(
+    @MessageBody() room: string,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    // Remove the client from the specified room
+    await client.leave(room);
+    console.log(`🚪 Client ${client.id} left room: ${room}`);
+
+    // Notify other clients in the room that this client has left
+    client.to(room).emit('left', `Client ${client.id} left room: ${room}`);
+  }
 }
