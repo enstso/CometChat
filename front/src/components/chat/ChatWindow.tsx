@@ -248,10 +248,6 @@ export default function ChatWindow({
       // Ignore messages sent by the current user
       if (msg.sender.username === currentUser.nickname) return;
 
-      // Ignore duplicate messages already in state
-      const alreadyExists = messages.some((m) => m.id === msg.id);
-      if (alreadyExists) return;
-
       // Mark message as not sent by current user
       const fromMe = false;
       setMessages((prev) => [...prev, { ...msg, fromMe }]);

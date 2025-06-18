@@ -17,7 +17,6 @@ export const SEARCH_USERS = gql`
     searchUsers(query: $query) {
       id
       username
-      email
     }
   }
 `;
@@ -42,9 +41,7 @@ export const GET_USER_CONVERSATIONS = gql`
           participants {
             id
             user {
-              id
               username
-              email
               auth0Id
             }
           }
