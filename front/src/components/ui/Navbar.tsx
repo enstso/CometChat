@@ -41,7 +41,7 @@ export default function Navbar() {
         {/* Logout button triggers Auth0 logout and redirects to home page */}
         <button
           onClick={() =>
-            logout({ returnTo: window.location.assign('/') } as LogoutOptions)
+            logout({ returnTo: window.location.origin } as LogoutOptions)
           }
           className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors px-4 py-1.5 rounded-md shadow-sm"
         >
