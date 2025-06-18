@@ -1,76 +1,161 @@
-import { WebsocketService } from './websocket.service';
-import { Server, Socket } from 'socket.io';
+import { MessageConsumer } from '../message/message.consumer';
+import { PrismaService } from '../prisma/prisma.service';
+import { WebsocketService } from '../websocket/websocket.service';
+import { Job } from 'bullmq';
 
-describe('WebsocketService', () => {
-  let service: WebsocketService;
-  let mockServer: Partial<Server>;
-  let mockClient: Partial<Socket>;
+describe('MessageConsumer', () => {
+  let consumer: MessageConsumer;
+  let prisma: PrismaService;
+  let websocketService: WebsocketService;
+  let mockServer: any;
 
   beforeEach(() => {
+    // Mock PrismaService
+    prisma = {
+      user: {
+        findUniqueOrThrow: jest.fn(),
+      },
+      message: {
+        create: jest.fn(),
+      },
+    } as any;
+
+    // Mock WebsocketService with server and its methods
     mockServer = {
+      except: jest.fn().mockReturnThis(),
       emit: jest.fn(),
     };
+    websocketService = {
+      server: mockServer,
+    } as any;
 
-    mockClient = {
-      id: 'client-123',
-      join: jest.fn().mockResolvedValue(undefined),
-      to: jest.fn().mockReturnValue({
-        emit: jest.fn(),
-      }),
+    consumer = new MessageConsumer(prisma, websocketService);
+  });
+
+  it('should process a send job successfully', async () => {
+    const jobData = {
+      content: 'Hello',
+      senderId: 'auth0|123',
+      conversationId: 'conv-1',
+      socketId: 'socket-123',
     };
+    const job = {
+      name: 'send',
+      data: jobData,
+    } as Job<any, any, any>;
 
-    service = new WebsocketService();
-    service.server = mockServer as Server;
-  });
+    // Mock prisma user findUniqueOrThrow to return a user
+    prisma.user.findUniqueOrThrow = jest.fn().mockResolvedValue({
+      id: 'user-1',
+      auth0Id: 'auth0|123',
+    });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+    // Mock prisma message create to return the saved message
+    prisma.message.create = jest.fn().mockResolvedValue({
+      content: jobData.content,
+      senderId: 'user-1',
+      conversationId: jobData.conversationId,
+      sender: {
+        id: 'user-1',
+        username: 'john_doe',
+      },
+      createdAt: new Date('2025-06-18T12:00:00Z'),
+    });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+    await consumer.process(job);
 
-  describe('handleConnection', () => {
-    it('should log client connection', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      service.handleConnection(mockClient as Socket);
-      expect(consoleSpy).toHaveBeenCalledWith('Client connected: client-123');
+    // Verify prisma calls
+    expect(prisma.user.findUniqueOrThrow).toHaveBeenCalledWith({
+      where: { auth0Id: jobData.senderId },
+    });
+    expect(prisma.message.create).toHaveBeenCalledWith({
+      data: {
+        content: jobData.content,
+        senderId: 'user-1',
+        conversationId: jobData.conversationId,
+      },
+      include: { sender: true },
+    });
+
+    // Verify WebSocket emits
+    expect(mockServer.except).toHaveBeenCalledWith(jobData.socketId);
+    expect(mockServer.except().emit).toHaveBeenCalledWith('newMessage', {
+      conversationId: jobData.conversationId,
+      content: jobData.content,
+      sender: { id: 'user-1', username: 'john_doe' },
+      createdAt: expect.any(Date),
+    });
+
+    expect(mockServer.emit).toHaveBeenCalledWith('getLastMessages', {
+      conversationId: jobData.conversationId,
+      content: jobData.content,
+      sender: { id: 'user-1', username: 'john_doe' },
+      createdAt: expect.any(Date),
     });
   });
 
-  describe('handleDisconnect', () => {
-    it('should log client disconnection', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      service.handleDisconnect(mockClient as Socket);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Client disconnected: client-123',
-      );
-    });
+  it('should do nothing if job name is not send', async () => {
+    const job = {
+      name: 'other',
+      data: {},
+    } as Job<any, any, any>;
+
+    // Should not throw or call anything
+    await consumer.process(job);
+
+    expect(prisma.user.findUniqueOrThrow).not.toHaveBeenCalled();
+    expect(prisma.message.create).not.toHaveBeenCalled();
+    expect(mockServer.except).not.toHaveBeenCalled();
+    expect(mockServer.emit).not.toHaveBeenCalled();
   });
 
-  describe('handleMessage', () => {
-    it('should emit the message to all clients', () => {
-      const message = 'Hello, world!';
-      service.handleMessage(message);
-      expect(mockServer.emit).toHaveBeenCalledWith('message', message);
-    });
+  it('should log error if user not found', async () => {
+    const jobData = {
+      content: 'Hello',
+      senderId: 'auth0|123',
+      conversationId: 'conv-1',
+      socketId: 'socket-123',
+    };
+    const job = {
+      name: 'send',
+      data: jobData,
+    } as Job<any, any, any>;
+
+    prisma.user.findUniqueOrThrow = jest
+      .fn()
+      .mockRejectedValue(new Error('User not found'));
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    await expect(consumer.process(job)).rejects.toThrow('User not found');
+
+    consoleErrorSpy.mockRestore();
   });
 
-  describe('handleJoin', () => {
-    it('should join room and notify others', async () => {
-      const room = 'test-room';
-      const toEmitSpy = jest.fn();
-      mockClient.to = jest.fn().mockReturnValue({ emit: toEmitSpy });
+  it('should log error if message creation fails', async () => {
+    const jobData = {
+      content: 'Hello',
+      senderId: 'auth0|123',
+      conversationId: 'conv-1',
+      socketId: 'socket-123',
+    };
+    const job = {
+      name: 'send',
+      data: jobData,
+    } as Job<any, any, any>;
 
-      await service.handleJoin(room, mockClient as Socket);
-
-      expect(mockClient.join).toHaveBeenCalledWith(room);
-      expect(mockClient.to).toHaveBeenCalledWith(room);
-      expect(toEmitSpy).toHaveBeenCalledWith(
-        'joined',
-        'Client client-123 joined room: test-room',
-      );
+    prisma.user.findUniqueOrThrow = jest.fn().mockResolvedValue({
+      id: 'user-1',
+      auth0Id: 'auth0|123',
     });
+    prisma.message.create = jest.fn().mockRejectedValue(new Error('DB error'));
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    await expect(consumer.process(job)).rejects.toThrow('DB error');
+
+    consoleErrorSpy.mockRestore();
   });
 });
