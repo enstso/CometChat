@@ -242,10 +242,6 @@ export default function ChatWindow({
 
     // Handler for new messages received from socket server
     const handleIncomingMessage = (msg: MessageType) => {
-      console.log("d,kedk");
-      console.log(msg.conversationId);
-      console.log(msg.sender.username);
-
       // Ignore messages from other conversations
       if (msg.conversationId !== selectedConversation) return;
 
