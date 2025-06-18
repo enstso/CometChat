@@ -34,6 +34,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Create .env file for backend from secret
+      - name: Create backend .env file
+        run: echo "${{ secrets.BACK_ENV_FILE }}" > ./back/.env
+
+      # Create .env file for frontend from secret
+      - name: Create frontend .env file
+        run: echo "${{ secrets.FRONT_ENV_FILE }}" > ./front/.env
+
       - name: Log in to DockerHub
         run: echo "${{ secrets.DOCKERPASSWORD }}" | docker login -u "${{ secrets.DOCKERUSERNAME }}" --password-stdin
 
@@ -57,6 +65,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
+    env:
+      REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -64,14 +76,10 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          printf "%s\n" "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H remote-host.com >> ~/.ssh/known_hosts
+          ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
 
       - name: Run remote deployment script
         run: |
-          ssh -i ~/.ssh/id_ed25519 {{ secrets.REMOTE_HOST }} 'bash /home/cipher/personal/CometChat/rePullImage.sh'
-          ssh -i ~/.ssh/id_ed25519 {{ secrets.REMOTE_HOST }} '
-            kubectl rollout restart deployment cometchat-back
-            kubectl rollout restart deployment cometchat-front
-          '
+          ssh -i ~/.ssh/id_ed25519 cipher@"$REMOTE_HOST" "bash '/home/cipher/personal/CometChat/k8s/rePullImage.sh'"

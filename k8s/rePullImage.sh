@@ -1,28 +1,38 @@
 #!/bin/bash
 
-# Étape 1: Liste les images Docker
-echo "Liste des images Docker existantes:"
+# Step 0: Delete existing Kubernetes deployments
+echo "Deleting Kubernetes deployments cometchat-back and cometchat-front..."
+kubectl delete deployment cometchat-back
+kubectl delete deployment cometchat-front
+
+# Step 1: List existing Docker images
+echo "Listing existing Docker images:"
 docker image ls
 
-# Étape 2: Supprimer les images spécifiées si elles existent
+# Step 2: Remove specified images if they exist
 IMAGES=("enstso/cometchat-front" "enstso/cometchat-back")
 
 for IMAGE in "${IMAGES[@]}"; do
     IMAGE_IDS=$(docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep "^$IMAGE" | awk '{print $2}')
     if [ -n "$IMAGE_IDS" ]; then
-        echo "Suppression de l'image: $IMAGE"
+        echo "Removing image: $IMAGE"
         for ID in $IMAGE_IDS; do
             docker rmi -f "$ID"
         done
     else
-        echo "Image $IMAGE non trouvée, rien à supprimer."
+        echo "Image $IMAGE not found, nothing to remove."
     fi
 done
 
-# Étape 3: Pull des images à jour
-echo "Récupération des dernières versions des images..."
+# Step 3: Pull the latest versions of the images
+echo "Pulling the latest versions of images..."
 for IMAGE in "${IMAGES[@]}"; do
     docker pull "$IMAGE"
 done
 
-echo "Opération terminée."
+# Step 4: Apply Kubernetes deployment files
+echo "Applying Kubernetes deployment files..."
+kubectl apply -f /home/cipher/personal/CometChat/k8s/cometchat-back-deployment.yaml
+kubectl apply -f /home/cipher/personal/CometChat/k8s/cometchat-front-deployment.yaml
+
+echo "Operation completed."
